@@ -11,6 +11,7 @@ const screens = [
   { href: "/", label: "Homepage" },
   { href: "/sign-up", label: "Sign up" },
   { href: "/sign-in", label: "Sign in" },
+  { href: "/sign-in?error=1", label: "Sign in, after a wrong password" },
   { href: "/forgot-password", label: "Forgot password" },
   { href: "/forgot-password/sent", label: "Reset link sent" },
   { href: "/reset-password", label: "Choose a new password" },

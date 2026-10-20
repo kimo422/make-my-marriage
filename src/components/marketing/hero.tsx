@@ -2,11 +2,11 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 const events = [
-  { name: "Haldi", when: "5 Feb · 10:00 AM", count: 85 },
-  { name: "Mehendi", when: "5 Feb · 4:30 PM", count: 110 },
-  { name: "Sangeet", when: "6 Feb · 7:00 PM · Taj Krishna", count: 142, active: true },
-  { name: "Muhurtham", when: "7 Feb · 9:15 AM", count: 240 },
-  { name: "Reception", when: "7 Feb · 7:30 PM", count: 230 },
+  { name: "Haldi", when: "10 Dec · 10:00 AM", count: 85 },
+  { name: "Mehendi", when: "10 Dec · 4:30 PM", count: 110 },
+  { name: "Sangeet", when: "11 Dec · 7:00 PM · Taj Krishna", count: 142, active: true },
+  { name: "Muhurtham", when: "12 Dec · 9:15 AM", count: 240 },
+  { name: "Reception", when: "12 Dec · 7:30 PM", count: 230 },
 ];
 
 const promises = [
@@ -30,17 +30,24 @@ function Chip({ children, tone = "stone" }: { children: ReactNode; tone?: "stone
   );
 }
 
-/** Illustrative product preview: timeline, RSVP tracker and the guest's phone. */
+/**
+ * Illustrative product preview: timeline, RSVP tracker and the guest's phone.
+ * Exposed to assistive tech as one image so the sample data isn't read as content.
+ */
 function ProductPreview() {
   return (
-    <div className="relative mx-auto w-full max-w-md pb-40 lg:mx-0 lg:ml-auto lg:pb-28">
+    <div
+      role="img"
+      aria-label="Preview of a wedding workspace: the event timeline, RSVP totals and a guest's RSVP on a phone"
+      className="relative mx-auto w-full max-w-md pb-40 lg:mx-0 lg:ml-auto lg:pb-28"
+    >
       <div className="border-hairline rounded-b-card rounded-t-[10rem] border bg-white px-6 pt-10 pb-6 shadow-[0_16px_40px_-8px_rgba(31,27,36,0.10)]">
         <div className="text-center">
           <span className="bg-emerald-soft text-emerald inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase">
             <span className="bg-emerald size-1.5 rounded-full" /> Wedding workspace
           </span>
-          <p className="mt-3 font-serif text-2xl">Ananya &amp; Rohan</p>
-          <p className="text-ink-muted text-sm">7 Feb 2027 · Hyderabad</p>
+          <p className="mt-3 font-serif text-2xl">Santhvana &amp; Balaram</p>
+          <p className="text-ink-muted text-sm">12 Dec 2026 · Hyderabad</p>
         </div>
         <ol className="border-hairline mt-5 space-y-1 border-t pt-4">
           {events.map((e) => (
@@ -97,7 +104,7 @@ function ProductPreview() {
           <p className="font-serif text-sm leading-snug">
             Sharma family, you&apos;re invited to the Sangeet
           </p>
-          <p className="text-ink-muted mt-1 text-[0.7rem]">Fri, 6 Feb · 7:00 PM · Taj Krishna</p>
+          <p className="text-ink-muted mt-1 text-[0.7rem]">Fri, 11 Dec · 7:00 PM · Taj Krishna</p>
           <div className="border-hairline mt-3 flex items-center justify-between rounded-full border bg-white px-3 py-1.5 text-xs">
             <span>Attending</span>
             <span className="flex items-center gap-2 font-semibold">
@@ -113,7 +120,7 @@ function ProductPreview() {
           <div className="bg-emerald text-ivory mt-3 rounded-full py-1.5 text-xs font-medium">
             Confirm RSVP
           </div>
-          <p className="text-ink-muted mt-2 text-[0.6rem]">You can change this until 20 Jan</p>
+          <p className="text-ink-muted mt-2 text-[0.6rem]">You can change this until 30 Nov</p>
         </div>
       </div>
     </div>

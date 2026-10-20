@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { AuthShell, LegalNote } from "@/components/auth/auth-shell";
+import { SignInError } from "@/components/auth/sign-in-error";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { PasswordField } from "@/components/ui/password-field";
 
 export const metadata: Metadata = { title: "Sign in" };
 
-// UI only: the form is wired to Better Auth in Phase 1. The banner previews the
-// failed-sign-in state; it will only render after a failed attempt.
+// UI only: the form is wired to Better Auth in Phase 1.
 export default function SignInPage() {
   return (
     <AuthShell
@@ -17,29 +18,10 @@ export default function SignInPage() {
       subtitle="Sign in to continue planning."
       below={
         <>
-          <div
-            role="alert"
-            className="rounded-card border-hairline bg-stone/60 flex gap-3 border p-4 text-sm"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-              className="mt-0.5 shrink-0"
-            >
-              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M12 7.5v5.5M12 16.5v.01" stroke="currentColor" strokeWidth="1.75" />
-            </svg>
-            <p>
-              That email and password don&apos;t match. Try again or{" "}
-              <Link href="/forgot-password" className="underline underline-offset-2">
-                reset your password
-              </Link>
-              .
-            </p>
-          </div>
+          {/* Reads the query string, so it renders at request time inside the static shell. */}
+          <Suspense fallback={null}>
+            <SignInError />
+          </Suspense>
           <LegalNote verb="signing in" />
         </>
       }
