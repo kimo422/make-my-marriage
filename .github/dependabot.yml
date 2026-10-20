@@ -5,6 +5,13 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # @types/node tracks the Node.js runtime (24 LTS, see .nvmrc).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # ESLint majors wait until eslint-config-next supports them.
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         update-types: [minor, patch]
