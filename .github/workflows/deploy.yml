@@ -1,0 +1,60 @@
+name: Deploy production
+
+# Production deploys only from here, after CI passes on main and migrations
+# have run. vercel.json turns off Vercel's own deploys for main; pull requests
+# still get Vercel preview deployments.
+#
+# Turn on by setting the repository variable DEPLOY_ENABLED=true and the
+# secrets VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID and MONGODB_URI
+# (see README, "Deploying").
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: >-
+      vars.DEPLOY_ENABLED == 'true' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run database migrations
+        run: npm run db:migrate
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DB: ${{ vars.MONGODB_DB || 'mmm' }}
+
+      - name: Build and deploy to Vercel
+        run: |
+          npx vercel@64.7.0 pull --yes --environment=production --token="$VERCEL_TOKEN"
+          npx vercel@64.7.0 build --prod --token="$VERCEL_TOKEN"
+          npx vercel@64.7.0 deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

@@ -1,0 +1,7 @@
+.next
+node_modules
+coverage
+package-lock.json
+next-env.d.ts
+# Design docs are authored outside the repo; keep their formatting as written.
+docs
