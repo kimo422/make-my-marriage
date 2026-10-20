@@ -1,10 +1,33 @@
-export default function Home() {
+import { Hero } from "@/components/marketing/hero";
+import {
+  Families,
+  Faq,
+  Features,
+  FinalCta,
+  HowItWorks,
+  Privacy,
+  Problem,
+  SiteFooter,
+} from "@/components/marketing/sections";
+import { SiteHeader } from "@/components/marketing/site-header";
+
+// Homepage from the Stitch "Full Homepage Experience" design, with the copy
+// rewritten to describe only what the app does.
+export default function HomePage() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-3 px-4">
-      <h1 className="text-3xl font-semibold">Make My Marriage</h1>
-      <p className="text-neutral-600">
-        Plan the whole wedding in one place. Sign-up arrives in the next build phase.
-      </p>
-    </main>
+    <>
+      <SiteHeader />
+      <main>
+        <Hero />
+        <Problem />
+        <Features />
+        <HowItWorks />
+        <Families />
+        <Privacy />
+        <Faq />
+        <FinalCta />
+      </main>
+      <SiteFooter />
+    </>
   );
 }
