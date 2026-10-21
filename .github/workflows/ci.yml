@@ -34,6 +34,9 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      # Clear message for the known Windows lockfile gap before npm ci rejects it.
+      - run: node scripts/check-lockfile.mjs
+
       - run: npm ci
 
       - name: Cache the MongoDB test binary

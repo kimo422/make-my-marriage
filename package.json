@@ -21,7 +21,8 @@
     "db:migrate": "migrate-mongo up -f migrate-mongo-config.cjs",
     "db:migrate:status": "migrate-mongo status -f migrate-mongo-config.cjs",
     "db:migrate:create": "migrate-mongo create -f migrate-mongo-config.cjs",
-    "prepare": "husky"
+    "prepare": "husky",
+    "lockfile:check": "node scripts/check-lockfile.mjs"
   },
   "dependencies": {
     "better-auth": "^1.7.12",
@@ -61,6 +62,7 @@
       "eslint --fix --max-warnings=0",
       "prettier --write"
     ],
-    "*.{json,md,css,yml,yaml}": "prettier --write"
+    "*.{json,md,css,yml,yaml}": "prettier --write",
+    "package-lock.json": "node scripts/check-lockfile.mjs"
   }
 }
