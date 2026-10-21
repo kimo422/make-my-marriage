@@ -13,7 +13,7 @@ This is the running record of what has been built, phase by phase, and what is s
 | — | Homepage and onboarding screens from Stitch | Done | `main` (PR #7) |
 | 1 | Accounts: sign-up, sign-in, password reset | Done | `main` (PR #8) |
 | 2 | Weddings, members, invite links, activity log | Done | `main` (PR #9) |
-| 3 | Events, tasks, starter checklists, dashboard home | Built, awaiting merge | branch `feat/events-tasks` |
+| 3 | Events, tasks, starter checklists, dashboard home | Done | `main` (PR #10) |
 | 4 | Guests, households, RSVP, WhatsApp invites | Not started | |
 | 5 | Photo storage, wedding website, invite card | Not started | |
 | 6 | Photo gallery with QR uploads and moderation | Not started | |
@@ -88,7 +88,7 @@ PRD: FR-1.3, FR-2.1, FR-4.1, FR-4.2, FR-4.3.
 - Tests cover every route for every role, including attempts to use another wedding's ids.
 - CI fix found while merging: lint now generates Next.js route types itself, so a clean checkout lints the same as a laptop.
 
-## Phase 3 — Events, tasks and dashboard home (built, awaiting merge)
+## Phase 3 — Events, tasks and dashboard home (done)
 
 PRD: FR-2.2, FR-2.3, FR-3.1–3.3, FR-5.1–5.4.
 

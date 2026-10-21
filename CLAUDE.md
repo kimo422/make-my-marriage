@@ -54,7 +54,7 @@ and API Design wins on endpoints, except for the decisions below.
 
 - Build in the phases agreed in planning; finish one, then wait for the user's go-ahead before
   starting the next. Phases 0–3 (scaffold, auth, weddings and members, events and tasks) are
-  built; Phase 4 is guests, households, RSVP and WhatsApp invites.
+  done; Phase 4 is guests, households, RSVP and WhatsApp invites.
 - At the end of each phase, update `docs/Project Status.md`: what was built, what changed or was
   left out, the test count and the date.
 - Conventional Commits (`feat:`, `fix:`, `chore:`, `ci:` …), enforced by a commit-msg hook.
