@@ -42,9 +42,12 @@ export async function pingDb(): Promise<void> {
   await connection.db.admin().ping();
 }
 
+/** A transaction handle. Services pass it through to repos without importing mongoose. */
+export type DbSession = ClientSession;
+
 // Runs fn in a transaction, retrying on transient errors. Use it only where two
 // or more writes must succeed or fail together (see the Database Design).
-export async function withTransaction<T>(fn: (session: ClientSession) => Promise<T>): Promise<T> {
+export async function withTransaction<T>(fn: (session: DbSession) => Promise<T>): Promise<T> {
   const { connection } = await connectDb();
   return connection.transaction(fn);
 }

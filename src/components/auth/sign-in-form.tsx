@@ -17,7 +17,7 @@ import { signInSchema } from "@/modules/auth/schema";
 export function SignInForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = safeNextPath(params.get("next"), "/account");
+  const next = safeNextPath(params.get("next"), "/weddings");
   const justReset = params.has("reset");
   const { fieldErrors, formError, setFormError, pending, setPending, read } =
     useAuthForm(signInSchema);

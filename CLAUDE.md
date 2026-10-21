@@ -24,6 +24,10 @@ and API Design wins on endpoints, except for the decisions below.
   `parseQuery` and `parseParams`; return `ok`, `created`, `list` or `noContent`.
 - Expected failures throw `AppError` with a code from `src/lib/errors` — don't invent new codes
   without adding them there and to the API Design.
+- Wedding-scoped access goes through `requireAccess(user, weddingId, permission)` from
+  `@/modules/weddings` (404 for strangers and deleted weddings, 403 for a missing permission).
+  Permissions live in `src/modules/members/permissions.ts`. Weddings is the hub module: it may
+  import members and activity, never the reverse.
 - Every tenant collection applies `tenantGuard`; every repo method takes a `weddingId`.
   Cross-tenant lookups (token links, cron) must use `{ tenantScope: "global" }` explicitly.
 - Multi-document writes that must agree go through `withTransaction`.
@@ -49,8 +53,8 @@ and API Design wins on endpoints, except for the decisions below.
 ## Workflow
 
 - Build in the phases agreed in planning; finish one, then wait for the user's go-ahead before
-  starting the next. Phases 0 (scaffold) and 1 (auth) are done; Phase 2 is weddings, members
-  and permissions.
+  starting the next. Phases 0–2 (scaffold, auth, weddings and members) are done; Phase 3 is
+  events, tasks and the dashboard home.
 - Conventional Commits (`feat:`, `fix:`, `chore:`, `ci:` …), enforced by a commit-msg hook.
 - Short-lived `feat/*`, `fix/*` or `chore/*` branches, squash-merged into `main` once CI passes.
 - New tenant routes need tests for each role (owner, manager, organizer, viewer) and a

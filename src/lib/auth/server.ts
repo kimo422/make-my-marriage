@@ -42,6 +42,9 @@ function createAuth(db: Db, client: MongoClient) {
       updateAge: DAY,
     },
 
+    // DELETE /api/me calls this after refusing sole owners (see modules/auth/service.ts).
+    user: { deleteUser: { enabled: true } },
+
     // Defaults to production only. Counters live in MongoDB so every function
     // instance sees the same totals (collection: rateLimit).
     rateLimit: {

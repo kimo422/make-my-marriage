@@ -14,7 +14,8 @@ const screens = [
   { href: "/forgot-password/sent", label: "Reset link sent" },
   { href: "/reset-password", label: "Reset link expired (no token)" },
   { href: "/account", label: "Your account (signed in)" },
-  { href: "/weddings/new", label: "Create your wedding (signed in; saving comes in Phase 2)" },
+  { href: "/weddings?pick=1", label: "Your weddings (signed in)" },
+  { href: "/weddings/new", label: "Create your wedding (signed in)" },
 ];
 
 export default function PreviewPage() {
@@ -24,8 +25,8 @@ export default function PreviewPage() {
       <div>
         <h1 className="font-serif text-4xl leading-tight tracking-tight">Design preview</h1>
         <p className="text-ink-muted mt-3">
-          Screens built from the Stitch designs. Sign-up, sign-in and password reset work; creating
-          a wedding arrives in Phase 2.
+          Screens built from the Stitch designs. Sign-up, sign-in, weddings and members work;
+          events, tasks and guests come next.
         </p>
       </div>
       <ul className="divide-hairline rounded-card border-hairline divide-y border bg-white">

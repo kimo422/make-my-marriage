@@ -41,6 +41,10 @@ export const resetPasswordSchema = z
 
 export const updateMeSchema = z.object({ name: nameField }).strict();
 
+export const deleteMeSchema = z
+  .object({ password: z.string().min(1, "Enter your password to confirm") })
+  .strict();
+
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type SignInInput = z.infer<typeof signInSchema>;
 export type UpdateMeInput = z.infer<typeof updateMeSchema>;

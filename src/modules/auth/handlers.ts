@@ -2,11 +2,11 @@ import "server-only";
 
 import { getAuth } from "@/lib/auth/server";
 import { requireUser } from "@/lib/auth/session";
-import { ok, parseJson, route } from "@/lib/http";
+import { noContent, ok, parseJson, route } from "@/lib/http";
 import { allowedOrigins } from "@/lib/http/origins";
 
-import { updateMeSchema } from "./schema";
-import { getMe, updateMe } from "./service";
+import { deleteMeSchema, updateMeSchema } from "./schema";
+import { deleteMe, getMe, updateMe } from "./service";
 
 /**
  * Better Auth's own endpoints (/api/auth/*: sign-up, sign-in, sign-out,
@@ -34,7 +34,15 @@ export async function authHandler(request: Request): Promise<Response> {
 /** GET /api/me: the signed-in user and the weddings they belong to. */
 export const getMeHandler = route(async (request) => {
   const user = await requireUser(request);
-  return ok(getMe(user));
+  return ok(await getMe(user));
+});
+
+/** DELETE /api/me: { password }. Refused with 409 SOLE_OWNER while the user is a wedding's only owner. */
+export const deleteMeHandler = route(async (request) => {
+  const user = await requireUser(request);
+  const { password } = await parseJson(request, deleteMeSchema);
+  await deleteMe(user, password, request.headers);
+  return noContent();
 });
 
 /** PATCH /api/me: change the display name. */

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { AppHeader } from "@/components/app/app-header";
 import { FormFallback } from "@/components/auth/form-fallback";
 import { RequireUser } from "@/components/auth/require-user";
-import { Logo } from "@/components/ui/logo";
 import { CreateWeddingForm } from "@/components/weddings/create-wedding-form";
 import { env } from "@/lib/env/server";
 
@@ -13,11 +13,7 @@ export default function NewWeddingPage() {
   const siteHost = new URL(env.APP_URL).host;
   return (
     <>
-      <header className="border-hairline border-b">
-        <div className="mx-auto flex h-16 max-w-xl items-center px-4">
-          <Logo />
-        </div>
-      </header>
+      <AppHeader />
       <main className="mx-auto w-full max-w-xl px-4 py-8">
         <h1 className="font-serif text-[2rem] leading-tight tracking-tight">
           Let&apos;s set up your wedding

@@ -36,3 +36,8 @@ export async function getCurrentUser(returnTo: string): Promise<SessionUser> {
   if (!user) redirect(`/sign-in?next=${encodeURIComponent(returnTo)}`);
   return user;
 }
+
+/** For public pages that change when someone is signed in (an invite link). */
+export async function getOptionalUser(): Promise<SessionUser | null> {
+  return readSession(await headers());
+}
