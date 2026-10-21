@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
+import { FormFallback } from "@/components/auth/form-fallback";
+import { RequireUser } from "@/components/auth/require-user";
 import { Logo } from "@/components/ui/logo";
 import { CreateWeddingForm } from "@/components/weddings/create-wedding-form";
 import { env } from "@/lib/env/server";
@@ -20,7 +23,11 @@ export default function NewWeddingPage() {
           Let&apos;s set up your wedding
         </h1>
         <p className="text-ink-muted mt-2 mb-6">You can change any of this later.</p>
-        <CreateWeddingForm siteHost={siteHost} />
+        <Suspense fallback={<FormFallback fields={5} />}>
+          <RequireUser returnTo="/weddings/new">
+            {() => <CreateWeddingForm siteHost={siteHost} />}
+          </RequireUser>
+        </Suspense>
       </main>
     </>
   );

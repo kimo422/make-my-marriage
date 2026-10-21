@@ -4,8 +4,8 @@ import { unstable_rethrow } from "next/navigation";
 import type { NextRequest } from "next/server";
 import { ZodError } from "zod";
 
-import { env } from "@/lib/env/server";
 import { AppError } from "@/lib/errors";
+import { allowedOrigins } from "@/lib/http/origins";
 import { logger, type Logger } from "@/lib/logger";
 import type { ApiError } from "@/lib/types/api";
 import { toFieldErrors } from "@/lib/validation/common";
@@ -19,16 +19,6 @@ export interface HandlerContext<P> {
 type Handler<P> = (request: NextRequest, context: HandlerContext<P>) => Promise<Response>;
 
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-
-// The app's own origins: APP_URL, plus the per-deployment URLs Vercel sets on
-// previews so pull-request builds can make mutations against themselves.
-function allowedOrigins(): Set<string> {
-  const origins = new Set([new URL(env.APP_URL).origin]);
-  for (const host of [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL]) {
-    if (host) origins.add(`https://${host}`);
-  }
-  return origins;
-}
 
 /**
  * Wraps a route handler with the cross-cutting rules every API route follows:
@@ -49,7 +39,7 @@ export function route<P extends Record<string, string | string[]> = Record<strin
     try {
       if (MUTATING_METHODS.has(request.method)) {
         const origin = request.headers.get("origin");
-        if (!origin || !allowedOrigins().has(origin)) {
+        if (!origin || !allowedOrigins().includes(origin)) {
           throw new AppError("FORBIDDEN", "Cross-origin request blocked");
         }
       }

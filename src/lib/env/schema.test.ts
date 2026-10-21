@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { parseServerEnv } from "@/lib/env/schema";
 
-const valid = { APP_URL: "http://localhost:3000", MONGODB_URI: "mongodb://localhost:27017" };
+const valid = {
+  APP_URL: "http://localhost:3000",
+  MONGODB_URI: "mongodb://localhost:27017",
+  BETTER_AUTH_SECRET: "x".repeat(32),
+};
 
 describe("parseServerEnv", () => {
   it("applies defaults", () => {

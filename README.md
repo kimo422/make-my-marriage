@@ -23,6 +23,8 @@ so a missing value stops `next dev` and `next build` with a list of what's wrong
 
 Check that the app can reach MongoDB: `curl http://localhost:3000/api/health`.
 
+Create the database indexes once per database: `npm run db:migrate`.
+
 ## Scripts
 
 | Script                                     | What it does                                               |
@@ -81,6 +83,7 @@ Phase 5, the image Worker on `*.workers.dev`.
 | ------- | ------------- | -------------------------------------------------------------------------------------------------- | ------------------------------ |
 | Now     | MongoDB Atlas | Free M0 cluster in Mumbai (ap-south-1); a database user limited to `mmm`; network access 0.0.0.0/0 | `MONGODB_URI`, `MONGODB_DB`    |
 | Now     | Vercel        | Import this GitHub repo as a project; Node 24; region `bom1` comes from `vercel.json`              | `APP_URL` and the vars above   |
+| Now     | (none)        | A random `BETTER_AUTH_SECRET` of 32+ characters per environment (see `.env.example`)               | `BETTER_AUTH_SECRET`           |
 | Phase 1 | Resend        | Account and API key. Without a verified domain it only delivers to your own address                | `RESEND_API_KEY`, `EMAIL_FROM` |
 | Phase 5 | Cloudflare    | R2 buckets (dev and prod), an R2 API token, a Worker on `workers.dev`                              | `R2_*`, `IMAGE_BASE_URL`, …    |
 

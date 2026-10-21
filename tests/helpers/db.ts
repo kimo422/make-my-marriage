@@ -6,9 +6,12 @@ import { connectDb } from "@/lib/db/connect";
 export async function useTestDb() {
   await connectDb();
   return {
+    /** Empties every collection, including ones mongoose has no model for (Better Auth's). */
     async clear() {
-      const { collections } = mongoose.connection;
-      await Promise.all(Object.values(collections).map((c) => c.deleteMany({})));
+      const db = mongoose.connection.db;
+      if (!db) throw new Error("Test database is not connected");
+      const collections = await db.listCollections({}, { nameOnly: true }).toArray();
+      await Promise.all(collections.map((c) => db.collection(c.name).deleteMany({})));
     },
     async drop() {
       await mongoose.connection.dropDatabase();

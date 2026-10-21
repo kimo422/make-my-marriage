@@ -5,17 +5,16 @@ import { Logo } from "@/components/ui/logo";
 
 export const metadata: Metadata = { title: "Design preview" };
 
-// Temporary index of the screens built from the Stitch designs, until the
-// flows are wired up and linked from each other.
+// Temporary index of the screens built from the Stitch designs.
 const screens = [
   { href: "/", label: "Homepage" },
   { href: "/sign-up", label: "Sign up" },
   { href: "/sign-in", label: "Sign in" },
-  { href: "/sign-in?error=1", label: "Sign in, after a wrong password" },
   { href: "/forgot-password", label: "Forgot password" },
   { href: "/forgot-password/sent", label: "Reset link sent" },
-  { href: "/reset-password", label: "Choose a new password" },
-  { href: "/weddings/new", label: "Create your wedding" },
+  { href: "/reset-password", label: "Reset link expired (no token)" },
+  { href: "/account", label: "Your account (signed in)" },
+  { href: "/weddings/new", label: "Create your wedding (signed in; saving comes in Phase 2)" },
 ];
 
 export default function PreviewPage() {
@@ -25,7 +24,8 @@ export default function PreviewPage() {
       <div>
         <h1 className="font-serif text-4xl leading-tight tracking-tight">Design preview</h1>
         <p className="text-ink-muted mt-3">
-          Screens built from the Stitch designs. Forms are not connected yet.
+          Screens built from the Stitch designs. Sign-up, sign-in and password reset work; creating
+          a wedding arrives in Phase 2.
         </p>
       </div>
       <ul className="divide-hairline rounded-card border-hairline divide-y border bg-white">

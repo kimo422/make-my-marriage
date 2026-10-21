@@ -49,7 +49,8 @@ and API Design wins on endpoints, except for the decisions below.
 ## Workflow
 
 - Build in the phases agreed in planning; finish one, then wait for the user's go-ahead before
-  starting the next. Phase 0 (scaffold) is done; Phase 1 is auth.
+  starting the next. Phases 0 (scaffold) and 1 (auth) are done; Phase 2 is weddings, members
+  and permissions.
 - Conventional Commits (`feat:`, `fix:`, `chore:`, `ci:` …), enforced by a commit-msg hook.
 - Short-lived `feat/*`, `fix/*` or `chore/*` branches, squash-merged into `main` once CI passes.
 - New tenant routes need tests for each role (owner, manager, organizer, viewer) and a
