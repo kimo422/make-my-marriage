@@ -55,6 +55,8 @@ and API Design wins on endpoints, except for the decisions below.
 - Build in the phases agreed in planning; finish one, then wait for the user's go-ahead before
   starting the next. Phases 0–2 (scaffold, auth, weddings and members) are done; Phase 3 is
   events, tasks and the dashboard home.
+- At the end of each phase, update `docs/Project Status.md`: what was built, what changed or was
+  left out, the test count and the date.
 - Conventional Commits (`feat:`, `fix:`, `chore:`, `ci:` …), enforced by a commit-msg hook.
 - Short-lived `feat/*`, `fix/*` or `chore/*` branches, squash-merged into `main` once CI passes.
 - New tenant routes need tests for each role (owner, manager, organizer, viewer) and a
