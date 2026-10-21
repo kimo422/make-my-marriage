@@ -6,9 +6,12 @@ import { FormFallback } from "@/components/auth/form-fallback";
 import { Avatar } from "@/components/ui/avatar";
 import { ArchCard } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
-import { daysUntil, formatLongDate } from "@/lib/dates";
+import { daysUntil, formatEventDay, formatLongDate, formatTime } from "@/lib/dates";
 import { listWeddingActivity } from "@/modules/activity";
+import { listWeddingEvents } from "@/modules/events";
 import { can, listMembers, ROLE_LABELS, SIDE_LABELS } from "@/modules/members";
+import { listWeddingTasks } from "@/modules/tasks";
+import { getSummary } from "@/modules/weddings";
 
 import { loadWedding } from "@/app/(app)/weddings/[weddingId]/load";
 
@@ -39,12 +42,20 @@ const timeFormat = new Intl.DateTimeFormat("en-IN", {
 
 async function WeddingHome({ params }: { params: Promise<{ weddingId: string }> }) {
   const { weddingId } = await params;
-  const { wedding, membership } = await loadWedding(weddingId, `/weddings/${weddingId}`);
-  const [members, activity] = await Promise.all([
+  const ctx = await loadWedding(weddingId, `/weddings/${weddingId}`);
+  const { wedding, membership } = ctx;
+  const [members, activity, events, summary, myTasks] = await Promise.all([
     listMembers(wedding.id),
     listWeddingActivity(wedding.id, { limit: 6 }),
+    listWeddingEvents(wedding.id),
+    getSummary(ctx),
+    listWeddingTasks(ctx, { assigneeId: "me" }),
   ]);
   const days = daysUntil(wedding.primaryDate, wedding.timezone);
+  const base = `/weddings/${wedding.id}`;
+  const { todo, in_progress, done, overdue } = summary.tasks;
+  const total = todo + in_progress + done;
+  const myOpen = myTasks.filter((t) => t.status !== "done").slice(0, 4);
 
   return (
     <div className="space-y-6">
@@ -59,6 +70,117 @@ async function WeddingHome({ params }: { params: Promise<{ weddingId: string }> 
           {wedding.tradition ? <Chip>{wedding.tradition}</Chip> : null}
         </div>
       </ArchCard>
+
+      <section className="border-hairline rounded-card border bg-white p-6">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-serif text-xl">Events</h2>
+          <Link href={`${base}/events`} className="text-emerald text-sm font-medium">
+            {events.length
+              ? "All events →"
+              : can(membership.role, "events.edit")
+                ? "Add events →"
+                : ""}
+          </Link>
+        </div>
+        {events.length === 0 ? (
+          <p className="text-ink-muted mt-3">No events yet.</p>
+        ) : (
+          <ol className="border-hairline mt-4 space-y-4 border-l pl-5">
+            {events.map((e) => (
+              <li key={e.id} className="relative">
+                <span
+                  className="bg-emerald absolute top-2 -left-[1.6rem] size-2.5 rounded-full"
+                  aria-hidden="true"
+                />
+                <p className="font-medium">{e.name}</p>
+                <p className="text-ink-muted text-sm">
+                  {formatEventDay(e.startAt, wedding.timezone)} ·{" "}
+                  {formatTime(e.startAt, wedding.timezone)}
+                  {e.venue.name ? ` · ${e.venue.name}` : ""}
+                </p>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
+
+      <section className="border-hairline rounded-card border bg-white p-6">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-serif text-xl">Tasks</h2>
+          <Link href={`${base}/tasks`} className="text-emerald text-sm font-medium">
+            Open the board →
+          </Link>
+        </div>
+        {total === 0 ? (
+          <p className="text-ink-muted mt-3">
+            No tasks yet.{" "}
+            {can(membership.role, "tasks.edit") ? (
+              <Link
+                href={`${base}/tasks/checklists`}
+                className="text-emerald underline underline-offset-2"
+              >
+                Start from a checklist
+              </Link>
+            ) : null}
+          </p>
+        ) : (
+          <>
+            <p className="mt-3">
+              <span className="font-serif text-3xl">{done}</span>
+              <span className="text-ink-muted"> of {total} done</span>
+              {overdue ? (
+                <Link
+                  href={`${base}/tasks?overdue=true`}
+                  className="text-danger ml-3 text-sm font-semibold"
+                >
+                  {overdue} overdue
+                </Link>
+              ) : null}
+            </p>
+            <div
+              className="bg-stone mt-3 h-2 overflow-hidden rounded-full"
+              role="progressbar"
+              aria-label="Tasks done"
+              aria-valuemin={0}
+              aria-valuemax={total}
+              aria-valuenow={done}
+            >
+              <div
+                className="bg-emerald h-full rounded-full"
+                style={{ width: `${String(Math.round((done / total) * 100))}%` }}
+              />
+            </div>
+            {myOpen.length ? (
+              <div className="mt-5">
+                <h3 className="text-sm font-semibold">Your tasks</h3>
+                <ul className="divide-hairline mt-1 divide-y">
+                  {myOpen.map((t) => (
+                    <li key={t.id}>
+                      <Link
+                        href={`${base}/tasks/${t.id}`}
+                        className="flex items-baseline justify-between gap-3 py-2.5 hover:underline"
+                      >
+                        <span className="min-w-0 truncate">{t.title}</span>
+                        {t.dueAt ? (
+                          <span
+                            className={
+                              t.overdue
+                                ? "text-danger shrink-0 text-sm font-semibold"
+                                : "text-ink-muted shrink-0 text-sm"
+                            }
+                          >
+                            {formatLongDate(t.dueAt)}
+                          </span>
+                        ) : null}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </>
+        )}
+      </section>
 
       <section className="border-hairline rounded-card border bg-white p-6">
         <div className="flex items-center justify-between gap-3">
@@ -106,7 +228,7 @@ async function WeddingHome({ params }: { params: Promise<{ weddingId: string }> 
       </section>
 
       <p className="text-ink-muted text-center text-sm">
-        Events, tasks and guests arrive in the next phases.
+        Guests and RSVPs arrive in the next phase.
       </p>
     </div>
   );

@@ -5,7 +5,10 @@ import { withTransaction } from "@/lib/db/connect";
 import { isDuplicateKeyError } from "@/lib/db/model";
 import { AppError, notFound } from "@/lib/errors";
 import { objectId } from "@/lib/validation/common";
+import { daysUntil } from "@/lib/dates";
 import { logActivity } from "@/modules/activity";
+import { countWeddingEvents } from "@/modules/events";
+import { countWeddingTasks, type TaskCountsDto } from "@/modules/tasks";
 import {
   acceptInvite as acceptMemberInvite,
   addOwner,
@@ -191,6 +194,21 @@ export async function checkSlug(slug: string): Promise<SlugAvailabilityDto> {
   const parsed = slugField.safeParse(slug);
   if (!parsed.success) return { slug, available: false };
   return { slug: parsed.data, available: !(await repo.slugTaken(parsed.data)) };
+}
+
+export interface WeddingSummaryDto {
+  daysToGo: number;
+  events: number;
+  tasks: TaskCountsDto;
+}
+
+/** Dashboard numbers (API Design, "summary"). RSVP totals join in Phase 4, photos in Phase 6. */
+export async function getSummary(ctx: WeddingContext): Promise<WeddingSummaryDto> {
+  const [events, tasks] = await Promise.all([
+    countWeddingEvents(ctx.wedding.id),
+    countWeddingTasks(ctx.wedding.id, ctx.wedding.timezone),
+  ]);
+  return { daysToGo: daysUntil(ctx.wedding.primaryDate, ctx.wedding.timezone), events, tasks };
 }
 
 /** Weddings where this user is the only owner: deleting the account would orphan them. */

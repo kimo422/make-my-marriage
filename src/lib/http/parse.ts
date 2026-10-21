@@ -63,3 +63,18 @@ export function parseParams<S extends z.ZodType>(params: unknown, schema: S): z.
   if (!result.success) throw new AppError("NOT_FOUND", "Not found");
   return result.data;
 }
+
+/**
+ * Optimistic concurrency (API Design, "Concurrency"): clients send the
+ * record's `updatedAt` as `If-Match`, and a stale value gets 409 CONFLICT.
+ * Returns undefined when the header is absent, so the check is opt-in.
+ */
+export function readIfMatch(request: NextRequest): Date | undefined {
+  const raw = request.headers.get("if-match");
+  if (!raw) return undefined;
+  const at = new Date(raw.replace(/^W\//, "").replace(/"/g, ""));
+  if (Number.isNaN(at.getTime())) {
+    throw new AppError("BAD_REQUEST", "If-Match must be the record's updatedAt timestamp");
+  }
+  return at;
+}

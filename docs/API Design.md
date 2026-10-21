@@ -109,7 +109,7 @@ Password changes use Better Auth's own endpoint; they are not duplicated here.
 | `PATCH /api/weddings/:weddingId` | M | Edit names, date, city, tradition, RSVP deadline, slug |
 | `DELETE /api/weddings/:weddingId` | O | Soft delete (sets `deletedAt`); body must repeat the wedding's slug to confirm |
 | `POST /api/weddings/:weddingId/restore` | O | Undo a delete within the 30 days the wedding is hidden; an automatic purge cannot be undone |
-| `GET /api/weddings/:weddingId/summary` | V | Dashboard numbers: days to go, RSVP totals per event, open tasks, photo count and storage used |
+| `GET /api/weddings/:weddingId/summary` | V | Dashboard numbers: days to go, RSVP totals per event, open tasks, photo count and storage used (built so far: `daysToGo`, `events` count, `tasks` counts by status plus `overdue`; RSVP and photo totals join in Phases 4 and 6) |
 | `PATCH /api/weddings/:weddingId/website` | M | Website settings: `published`, `story`, `passwordProtected`, `indexable` |
 | `GET /api/weddings/:weddingId/activity` | V | Activity feed, newest first, cursor paged |
 
@@ -162,7 +162,7 @@ Events are the functions (Haldi, Sangeet, Wedding and so on). Tasks are the shar
 
 | Method and path | Min role | Purpose |
 | --- | --- | --- |
-| `GET /api/weddings/:weddingId/events` | V | All events by start time |
+| `GET /api/weddings/:weddingId/events` | V | All events in dashboard order: new events slot in by start time, then planners can reorder |
 | `POST /api/weddings/:weddingId/events` | M | Create an event; also creates its album (one transaction) |
 | `GET /api/weddings/:weddingId/events/:eventId` | V | One event with invited and responded counts |
 | `PATCH /api/weddings/:weddingId/events/:eventId` | M | Edit name, type, times, venue, dress code, notes, `isPublic` |
@@ -176,11 +176,13 @@ The UI calls `impact` first and shows a confirmation with those counts before it
 
 | Method and path | Min role | Purpose |
 | --- | --- | --- |
-| `GET /api/weddings/:weddingId/tasks` | V | Tasks; filters `status`, `assigneeId`, `eventId`, `overdue=true` |
+| `GET /api/weddings/:weddingId/tasks` | V | Tasks; filters `status`, `assigneeId` (a member's id or `me`), `eventId`, `overdue=true` |
 | `POST /api/weddings/:weddingId/tasks` | Org | Create a task; `assigneeId` must be a current member |
 | `PATCH /api/weddings/:weddingId/tasks/:taskId` | Org | Edit fields; sets `completedAt` when status becomes `done`; accepts `If-Match` |
 | `POST /api/weddings/:weddingId/tasks/:taskId/move` | Org | Drag on the board: `{ status, beforeId, afterId }`; accepts If-Match; the server computes the fractional `boardOrder` |
 | `DELETE /api/weddings/:weddingId/tasks/:taskId` | M, or the creator | Delete a task |
+| `GET /api/weddings/:weddingId/checklists?eventId=` | Org | Starter checklist for an event's type, or the whole-wedding list when `eventId` is omitted, with each item's proposed due date |
+| `POST /api/weddings/:weddingId/tasks/import-checklist` | Org | `{ eventId \| null, itemIds }`: creates the ticked items as tasks; due dates count back from the event's day (or the main wedding date) and past dates become today |
 
 **Example: move a task to Done**
 

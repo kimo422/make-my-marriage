@@ -11,11 +11,16 @@ export function WeddingNav({ weddingId, canEdit }: { weddingId: string; canEdit:
   const base = `/weddings/${weddingId}`;
   const items = [
     { href: base, label: "Home" },
+    { href: `${base}/events`, label: "Events" },
+    { href: `${base}/tasks`, label: "Tasks" },
     { href: `${base}/members`, label: "Members" },
     ...(canEdit ? [{ href: `${base}/settings`, label: "Settings" }] : []),
   ];
   return (
-    <nav aria-label="Wedding sections" className="-mx-4 overflow-x-auto px-4">
+    <nav
+      aria-label="Wedding sections"
+      className="-mx-4 [scrollbar-width:none] overflow-x-auto px-4 [&::-webkit-scrollbar]:hidden"
+    >
       <ul className="flex gap-1">
         {items.map((item) => {
           const active = item.href === base ? pathname === base : pathname.startsWith(item.href);

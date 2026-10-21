@@ -16,6 +16,7 @@ import {
   checkSlug,
   createWedding,
   deleteWedding,
+  getSummary,
   requireAccess,
   restoreWedding,
   toMyWedding,
@@ -62,6 +63,13 @@ export const deleteWeddingHandler = route<WeddingParams>(async (request, { param
   const { slug } = await parseJson(request, deleteWeddingSchema);
   await deleteWedding(ctx, slug);
   return noContent();
+});
+
+/** GET /api/weddings/:weddingId/summary: dashboard numbers (min role: viewer). */
+export const summaryHandler = route<WeddingParams>(async (request, { params }) => {
+  const user = await requireUser(request);
+  const { weddingId } = parseParams(params, weddingParams);
+  return ok(await getSummary(await requireAccess(user, weddingId, "wedding.view")));
 });
 
 /** POST /api/weddings/:weddingId/restore (owner, within 30 days of deleting). */

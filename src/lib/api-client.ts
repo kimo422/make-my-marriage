@@ -22,12 +22,17 @@ export async function api<T = unknown>(
   method: "GET" | "POST" | "PATCH" | "DELETE",
   path: string,
   body?: unknown,
+  options: { ifMatch?: string } = {},
 ): Promise<T> {
+  const headers: Record<string, string> = {};
+  if (body !== undefined) headers["content-type"] = "application/json";
+  // Optimistic concurrency: a stale copy gets 409 CONFLICT instead of overwriting.
+  if (options.ifMatch) headers["if-match"] = options.ifMatch;
   let res: Response;
   try {
     res = await fetch(path, {
       method,
-      headers: body === undefined ? {} : { "content-type": "application/json" },
+      headers,
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {

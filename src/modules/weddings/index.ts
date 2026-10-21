@@ -3,6 +3,7 @@ export {
   checkSlug,
   createWedding,
   deleteWedding,
+  getSummary,
   listMyWeddings,
   previewInvite,
   requireAccess,
@@ -13,5 +14,6 @@ export {
   updateWedding,
   type InvitePreviewDto,
   type WeddingContext,
+  type WeddingSummaryDto,
 } from "./service";
 export type { MyWeddingDto, SlugAvailabilityDto, WeddingDto } from "./types";
