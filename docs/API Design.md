@@ -95,7 +95,7 @@ A signed-in user can belong to many weddings. These endpoints create a wedding, 
 | --- | --- | --- |
 | `GET /api/me` | Signed in | Current user and a list of their weddings with role, side, names and date; weddings deleted in the last 30 days are included with their delete date so an owner can restore them |
 | `PATCH /api/me` | Signed in | Change display name |
-| `DELETE /api/me` | Signed in | Delete the account; refused with `409 SOLE_OWNER` while the user is the only owner of any wedding |
+| `DELETE /api/me` | Signed in | Delete the account with `{ password }` to confirm (`422` if wrong); refused with `409 SOLE_OWNER` while the user is the only owner of any wedding; removes all their memberships |
 
 Password changes use Better Auth's own endpoint; they are not duplicated here.
 
@@ -104,6 +104,7 @@ Password changes use Better Auth's own endpoint; they are not duplicated here.
 | Method and path | Min role | Purpose |
 | --- | --- | --- |
 | `POST /api/weddings` | Signed in | Create a wedding; caller becomes owner; creates the default "General" album (one transaction) |
+| `GET /api/weddings/slug-availability?slug=` | Signed in | `{ slug, available }` for the live check on the create and settings forms; a malformed slug is reported as unavailable |
 | `GET /api/weddings/:weddingId` | V | Wedding details, caller's role and side |
 | `PATCH /api/weddings/:weddingId` | M | Edit names, date, city, tradition, RSVP deadline, slug |
 | `DELETE /api/weddings/:weddingId` | O | Soft delete (sets `deletedAt`); body must repeat the wedding's slug to confirm |
@@ -120,10 +121,10 @@ Password changes use Better Auth's own endpoint; they are not duplicated here.
 | `PATCH /api/weddings/:weddingId/members/:userId` | M (O to change owners) | Change role or side; refused if it removes the last owner |
 | `DELETE /api/weddings/:weddingId/members/:userId` | M, or the user themselves | Remove a member, or leave; refused for the last owner |
 | `GET /api/weddings/:weddingId/invites` | M | Pending invites |
-| `POST /api/weddings/:weddingId/invites` | M (O for owner invites) | Create an invite; returns the one-time `inviteUrl` for the inviter to share |
+| `POST /api/weddings/:weddingId/invites` | M (O for owner invites) | Create an invite; returns the one-time `inviteUrl` for the inviter to share; revokes any earlier pending invite to the same email; `409 CONFLICT` if that person is already a member |
 | `DELETE /api/weddings/:weddingId/invites/:inviteId` | M | Revoke a pending invite |
 | `GET /api/invites/:token` | Public | Preview before accepting: wedding names, role, side (no email shown) |
-| `POST /api/invites/accept` | Signed in | Accept with `{ token }`; the signed-in email must match the invite; creates the membership |
+| `POST /api/invites/accept` | Signed in | Accept with `{ token }`; the signed-in email must match the invite (`403` otherwise); creates the membership and returns `{ weddingId }`; `409 CONFLICT` with `details.weddingId` if already a member |
 
 Transferring ownership is two calls by an owner: promote the other person to `owner`, then demote or leave. There is no separate transfer endpoint.
 
