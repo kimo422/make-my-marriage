@@ -5,7 +5,9 @@ name: Deploy production
 # still get Vercel preview deployments.
 #
 # Turn on by adding the secrets VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
-# and MONGODB_URI, then the repository variable DEPLOY_ENABLED=true (see
+# and MONGODB_URI (to the "make-my-marriage" environment or the repository),
+# then the REPOSITORY variable DEPLOY_ENABLED=true: the job's `if` runs before
+# the environment loads, so an environment variable can't switch it on (see
 # README, "Deploying").
 
 on:
@@ -28,7 +30,7 @@ jobs:
       vars.DEPLOY_ENABLED == 'true' &&
       (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-24.04
-    environment: production
+    environment: make-my-marriage
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -45,7 +47,7 @@ jobs:
           [ -n "$VERCEL_PROJECT_ID" ] || missing="$missing VERCEL_PROJECT_ID"
           [ -n "$MONGODB_URI" ] || missing="$missing MONGODB_URI"
           if [ -n "$missing" ]; then
-            echo "::error::Missing repository secrets:$missing (README, Deploying)"
+            echo "::error::Missing secrets:$missing (README, Deploying)"
             exit 1
           fi
         env:

@@ -132,9 +132,12 @@ checks `/api/health`, so the database is always ready before new code goes live.
    Account Settings → General, "Vercel ID"); the project id is under Project → Settings → General
    ("Project ID").
 4. **GitHub: secrets and switch** (repo → Settings → Secrets and variables → Actions):
-   - Secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID` (team or account id), `VERCEL_PROJECT_ID`,
-     `MONGODB_URI` (the production string from step 1; the workflow runs migrations with it).
-   - Variables: `DEPLOY_ENABLED` = `true`, `MONGODB_DB` = `mmm`.
+   - Secrets, in the **`make-my-marriage`** environment (or as repository secrets):
+     `VERCEL_TOKEN`, `VERCEL_ORG_ID` (team or account id), `VERCEL_PROJECT_ID`, `MONGODB_URI`
+     (the production string from step 1; the workflow runs migrations with it).
+   - Variable `MONGODB_DB` = `mmm` (environment or repository).
+   - **Repository** variable `DEPLOY_ENABLED` = `true`. It must be at repository level: the
+     workflow decides whether to run before it loads the environment.
 5. **Deploy.** Actions → **Deploy production** → Run workflow (or merge anything to `main`).
    The run migrates `mmm`, deploys, and passes only when
    `https://make-my-marriage.vercel.app/api/health` reports `ok`.
