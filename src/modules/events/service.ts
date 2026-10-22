@@ -3,6 +3,7 @@ import "server-only";
 import { withTransaction } from "@/lib/db/connect";
 import { AppError, forbidden, notFound } from "@/lib/errors";
 import { logActivity } from "@/modules/activity";
+import { countRsvpsForEvent, removeEventFromGuests } from "@/modules/guests";
 import { can, type Role } from "@/modules/members";
 import { countTasksForEvent, unlinkEventTasks } from "@/modules/tasks";
 
@@ -108,23 +109,27 @@ export async function reorderEvents(ctx: EventContext, ids: string[]): Promise<E
 
 export async function eventImpact(weddingId: string, eventId: string): Promise<EventImpactDto> {
   await getEvent(weddingId, eventId);
-  // RSVPs (Phase 4) and photos (Phase 6) join this count, and the cascade, when they exist.
-  return {
-    tasksUnlinked: await countTasksForEvent(weddingId, eventId),
-    rsvpsRemoved: 0,
-    photosMoved: 0,
-  };
+  // Photos (Phase 6) join this count, and the cascade, when they exist.
+  const [tasksUnlinked, rsvpsRemoved] = await Promise.all([
+    countTasksForEvent(weddingId, eventId),
+    countRsvpsForEvent(weddingId, eventId),
+  ]);
+  return { tasksUnlinked, rsvpsRemoved, photosMoved: 0 };
 }
 
-/** Deletes the event and unlinks its tasks in one transaction; returns what was affected. */
+/**
+ * Deletes the event in one transaction: unlinks its tasks, takes it off every
+ * household's invitation and drops its RSVPs. Returns what was affected.
+ */
 export async function deleteEvent(ctx: EventContext, eventId: string): Promise<EventImpactDto> {
   assertCanEdit(ctx);
   const event = await getEvent(ctx.wedding.id, eventId);
-  const tasksUnlinked = await withTransaction(async (session) => {
-    const unlinked = await unlinkEventTasks(ctx.wedding.id, eventId, session);
+  const impact = await withTransaction(async (session) => {
+    const tasksUnlinked = await unlinkEventTasks(ctx.wedding.id, eventId, session);
+    const rsvpsRemoved = await removeEventFromGuests(ctx.wedding.id, eventId, session);
     await repo.deleteEvent(ctx.wedding.id, eventId, session);
-    return unlinked;
+    return { tasksUnlinked, rsvpsRemoved, photosMoved: 0 };
   });
   await log(ctx, eventId, "deleted", `${ctx.user.name} deleted ${event.name}`);
-  return { tasksUnlinked, rsvpsRemoved: 0, photosMoved: 0 };
+  return impact;
 }

@@ -22,6 +22,7 @@ jobs:
       APP_URL: http://localhost:3000
       MONGODB_URI: mongodb://127.0.0.1:27017
       BETTER_AUTH_SECRET: ci-placeholder-secret-not-used-for-anything-real
+      TOKEN_SECRET: ci-placeholder-token-secret-not-used-for-anything
       NEXT_TELEMETRY_DISABLED: 1
       MONGOMS_DOWNLOAD_DIR: ${{ github.workspace }}/.cache/mongodb-binaries
     steps:

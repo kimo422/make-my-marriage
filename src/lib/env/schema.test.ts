@@ -6,6 +6,7 @@ const valid = {
   APP_URL: "http://localhost:3000",
   MONGODB_URI: "mongodb://localhost:27017",
   BETTER_AUTH_SECRET: "x".repeat(32),
+  TOKEN_SECRET: "y".repeat(32),
 };
 
 describe("parseServerEnv", () => {

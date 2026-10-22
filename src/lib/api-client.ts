@@ -19,13 +19,15 @@ export class ApiClientError extends Error {
 
 /** Sends a request and returns `data`, or throws ApiClientError with the API's code and fields. */
 export async function api<T = unknown>(
-  method: "GET" | "POST" | "PATCH" | "DELETE",
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   path: string,
   body?: unknown,
   options: { ifMatch?: string } = {},
 ): Promise<T> {
   const headers: Record<string, string> = {};
-  if (body !== undefined) headers["content-type"] = "application/json";
+  // FormData (file uploads) sets its own multipart content type.
+  const isForm = body instanceof FormData;
+  if (body !== undefined && !isForm) headers["content-type"] = "application/json";
   // Optimistic concurrency: a stale copy gets 409 CONFLICT instead of overwriting.
   if (options.ifMatch) headers["if-match"] = options.ifMatch;
   let res: Response;
@@ -33,7 +35,7 @@ export async function api<T = unknown>(
     res = await fetch(path, {
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     });
   } catch {
     throw new ApiClientError(0, {

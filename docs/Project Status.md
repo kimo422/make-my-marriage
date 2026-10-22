@@ -14,12 +14,14 @@ This is the running record of what has been built, phase by phase, and what is s
 | 1 | Accounts: sign-up, sign-in, password reset | Done | `main` (PR #8) |
 | 2 | Weddings, members, invite links, activity log | Done | `main` (PR #9) |
 | 3 | Events, tasks, starter checklists, dashboard home | Done | `main` (PR #10) |
-| 4 | Guests, households, RSVP, WhatsApp invites | Not started | |
+| 4 | Guests, households, RSVP, WhatsApp invites | Done | `feat/guests-rsvp` |
 | 5 | Photo storage, wedding website, invite card | Not started | |
 | 6 | Photo gallery with QR uploads and moderation | Not started | |
-| 7 | Polish: PWA, demo data, end-to-end tests, launch | Not started | |
+| 7 | Production launch and polish: demo data, end-to-end tests | Next (moved ahead of 5 and 6) | |
 
-**Test count:** 159 automated tests passing (unit, API and full role matrix).
+**Test count:** 198 automated tests passing (unit, API and full role matrix).
+
+**Order change (22 Oct 2026):** after Phase 4 we go to Phase 7, to get the app live on Vercel in production, then come back for Phases 5 and 6.
 
 ---
 
@@ -118,17 +120,49 @@ PRD: FR-2.2, FR-2.3, FR-3.1–3.3, FR-5.1–5.4.
 - Found during the walkthrough: event order changes were bumping `updatedAt`, which made a just-loaded copy look stale to If-Match. Reordering no longer counts as an edit.
 - Not done: members who are removed keep their old task assignments (shown as "Former member"); reassigning them is a small follow-up.
 
-## Phase 4 — Guests and RSVP (planned)
+## Phase 4 — Guests and RSVP (done)
 
 PRD: FR-6.1–6.6, FR-7.1–7.4.
 
-- Households (families) and guests, bride's or groom's side; add one by one or import a CSV (preview first, undo within 24 hours).
-- Choose which events each household is invited to, with a maximum headcount.
-- Guest RSVP page from a personal link, no login: answer per event, change until the deadline, add to calendar.
-- WhatsApp invites: a ready-written message with each family's link, sent from your own phone; tracks sent, opened and responded.
-- Editable message templates (invitation, reminder, event day) and a reminder queue.
-- RSVP dashboard per event and CSV export for the caterer.
-- Organizers only see and manage guests on their own side; viewers see counts but no phone numbers or emails.
+**Families and guests**
+- A family (household) is the unit that is invited and answers: name, bride's or groom's side, group, seats (maximum headcount), events it's invited to, notes, and its guests.
+- Guests have a name, WhatsApp number, email, relation and a "child" tick. Phone numbers are stored in international form; a 10-digit number is taken as Indian (+91).
+- The main contact gets the WhatsApp invite: the first adult with a phone, changeable later. The main contact can't be removed until someone else is chosen.
+- Guest list with search (family, guest or group) and filters for side and invite status.
+- Un-inviting a family from an event drops its answer for that event.
+
+**CSV import**
+- Upload a CSV from Excel or Google Sheets (up to 2 MB and 2,000 rows). Common column names are recognised (Family/Household, Mobile/Phone, Seats/Headcount…), and a template is offered.
+- The preview shows the rows, the problems by line, and phone numbers that appear twice. Nothing is saved until you import, and an import can be undone for 24 hours.
+- Choose the events everyone in the file is invited to.
+
+**WhatsApp invites**
+- The app never sends messages. It opens WhatsApp with the text and the family's RSVP link ready; you tap send, then tick "Sent".
+- An invite queue ("To invite", "To remind") to work down the list, plus Copy link and New link (the old link stops working) on each family.
+- Message wording for the invitation, reminder and event day, with placeholders such as `{householdName}` and `{rsvpUrl}`, a live preview, and "Use the original".
+- Status per family: Not sent, Sent, Opened (the guest opened the page; link previews don't count), Responded.
+
+**The guest's RSVP page (`/r/…`)**
+- No sign-in. Shows the couple, the family's first names, each invited function with time, venue, map and dress code; Yes or No and how many are coming.
+- Answers can be changed until the RSVP deadline, then the page says RSVPs have closed. The team can still enter answers after the deadline.
+- After replying: Add to calendar (a `.ics` file of the functions you're attending, plus Google Calendar links).
+- The link is a key derived from `TOKEN_SECRET`, so it can be shown again without storing it; it isn't indexed and isn't passed on to other sites.
+
+**RSVPs dashboard**
+- Per function: how many are coming, yes / no / waiting families, and a progress bar; then every invited family with its answer.
+- The team can enter or change an answer for a family who replied by phone.
+- "Download for caterer": a CSV with one row per family and the headcount per function, plus totals (owners and managers).
+- Dashboard home shows coming and waiting per function.
+
+**Rules**
+- Organizers see and manage only their own side (another side's family is "not found"). Viewers see everything except phone numbers and emails, which the API never sends them.
+- Deleting an event now also takes it off every family's invitation and removes its RSVPs, in the same transaction; the confirm step counts them.
+- Guest pages are rate limited by IP (120 a minute), and RSVP submissions by link (20 an hour).
+
+**Also**
+- New setting: `TOKEN_SECRET` (32+ characters). It must be set on Vercel too, and changing it breaks every RSVP link already sent.
+- 39 new tests: role matrix, side scoping, contacts hidden from viewers, capacity, not-invited and deadline rules, link regeneration, the import preview/commit/undo, templates, CSV export and the event cascade.
+- Changed from the API Design: the household list returns the whole list at once instead of cursor pages (a wedding has hundreds of families, not millions). Added `PUT /message-templates`, an `opened` beacon and `calendar.ics`.
 
 ## Phase 5 — Photo storage, wedding website and invite card (planned)
 
@@ -152,7 +186,6 @@ PRD: FR-10.1–10.9.
 
 ## Phase 7 — Polish and launch (planned)
 
-- Installable app (PWA) for the wedding day.
 - Seeded demo wedding a reviewer can log into.
 - End-to-end tests for the four key flows on a phone.
 - Error tracking (Sentry), strict script security policy, performance pass for guest pages on 4G.
@@ -171,11 +204,13 @@ Agreed during planning (20 Oct 2026); `CLAUDE.md` holds the full list.
 - Organizers can edit any task; viewers never see guest phone numbers or emails.
 - No custom domain: the app runs on `*.vercel.app` and photos on `*.workers.dev`.
 - Modern emerald-and-ivory design rather than a traditional red-and-gold look.
+- No installable app (PWA) in this MVP: everyone uses the site in their browser. The app is planned for the next MVP (decided 22 Oct 2026).
 
 ## Known limits and follow-ups
 
 - **Email:** with no domain, Resend only delivers to the account owner's own address, so password-reset emails won't reach other users yet.
 - **Production:** not deployed yet. Needs a production Atlas cluster, production environment variables on Vercel, and `DEPLOY_ENABLED=true` on GitHub.
+- **Guests:** no bulk actions yet (invite several families to an event at once); edit families one by one or re-import.
 - **Waiting on later phases:** the default "General" album at wedding creation (Phase 6) and the cover photo (Phase 5).
 - **Not in the MVP:** expenses, vendors, travel and hotels, live stream, face search, other languages.
 

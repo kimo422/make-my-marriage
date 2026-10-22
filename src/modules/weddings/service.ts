@@ -8,6 +8,7 @@ import { objectId } from "@/lib/validation/common";
 import { daysUntil } from "@/lib/dates";
 import { logActivity } from "@/modules/activity";
 import { countWeddingEvents } from "@/modules/events";
+import { rsvpSummary, type EventRsvpSummaryDto } from "@/modules/guests";
 import { countWeddingTasks, type TaskCountsDto } from "@/modules/tasks";
 import {
   acceptInvite as acceptMemberInvite,
@@ -200,15 +201,32 @@ export interface WeddingSummaryDto {
   daysToGo: number;
   events: number;
   tasks: TaskCountsDto;
+  /** Per event; an organizer sees their own side's numbers. */
+  rsvps: EventRsvpSummaryDto[];
 }
 
-/** Dashboard numbers (API Design, "summary"). RSVP totals join in Phase 4, photos in Phase 6. */
+/** Dashboard numbers (API Design, "summary"). Photo totals join in Phase 6. */
 export async function getSummary(ctx: WeddingContext): Promise<WeddingSummaryDto> {
-  const [events, tasks] = await Promise.all([
+  const [events, tasks, rsvps] = await Promise.all([
     countWeddingEvents(ctx.wedding.id),
     countWeddingTasks(ctx.wedding.id, ctx.wedding.timezone),
+    rsvpSummary(ctx),
   ]);
-  return { daysToGo: daysUntil(ctx.wedding.primaryDate, ctx.wedding.timezone), events, tasks };
+  return {
+    daysToGo: daysUntil(ctx.wedding.primaryDate, ctx.wedding.timezone),
+    events,
+    tasks,
+    rsvps,
+  };
+}
+
+/**
+ * The wedding behind a guest link (RSVP now, gallery later). A deleted wedding
+ * is null, so its links stop working at once.
+ */
+export async function getPublicWedding(weddingId: string): Promise<WeddingDto | null> {
+  const wedding = await repo.findWedding(weddingId);
+  return wedding && !wedding.deletedAt ? wedding : null;
 }
 
 /** Weddings where this user is the only owner: deleting the account would orphan them. */

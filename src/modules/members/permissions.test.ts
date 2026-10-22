@@ -17,6 +17,7 @@ const matrix: Record<Permission, Record<Role, boolean>> = {
   "guests.edit": { owner: true, manager: true, organizer: true, viewer: false },
   "guests.viewContacts": { owner: true, manager: true, organizer: true, viewer: false },
   "rsvps.view": { owner: true, manager: true, organizer: true, viewer: true },
+  "rsvps.export": { owner: true, manager: true, organizer: false, viewer: false },
   "website.edit": { owner: true, manager: true, organizer: false, viewer: false },
   "gallery.moderate": { owner: true, manager: true, organizer: false, viewer: false },
 };

@@ -14,6 +14,11 @@ export const serverEnvSchema = z.object({
   // changing it signs everyone out.
   BETTER_AUTH_SECRET: z.string().min(32, "must be at least 32 characters"),
 
+  // Derives guests' personal RSVP (and, later, gallery) links so they can be
+  // shown again for WhatsApp. Anyone holding it can rebuild every link;
+  // changing it breaks all links already sent.
+  TOKEN_SECRET: z.string().min(32, "must be at least 32 characters"),
+
   // Optional so the app runs without email; while it's missing, development
   // logs password-reset links instead of sending them. Without a verified
   // domain, Resend only delivers to the account owner's own address.

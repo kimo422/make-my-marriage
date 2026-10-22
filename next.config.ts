@@ -40,7 +40,12 @@ const nextConfig: NextConfig = {
     },
   },
   headers() {
-    return Promise.resolve([{ source: "/:path*", headers: securityHeaders }]);
+    return Promise.resolve([
+      { source: "/:path*", headers: securityHeaders },
+      // A guest's RSVP link carries their token: never send it on as a Referer
+      // (to maps, calendars or WhatsApp). Later entries win for the same header.
+      { source: "/r/:path*", headers: [{ key: "Referrer-Policy", value: "no-referrer" }] },
+    ]);
   },
 };
 

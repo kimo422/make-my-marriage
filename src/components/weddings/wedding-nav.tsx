@@ -12,6 +12,8 @@ export function WeddingNav({ weddingId, canEdit }: { weddingId: string; canEdit:
   const items = [
     { href: base, label: "Home" },
     { href: `${base}/events`, label: "Events" },
+    { href: `${base}/guests`, label: "Guests" },
+    { href: `${base}/rsvps`, label: "RSVPs" },
     { href: `${base}/tasks`, label: "Tasks" },
     { href: `${base}/members`, label: "Members" },
     ...(canEdit ? [{ href: `${base}/settings`, label: "Settings" }] : []),

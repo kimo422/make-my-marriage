@@ -28,6 +28,8 @@ export const PERMISSIONS = {
   /** Decision 6: viewers see RSVP counts but never guest phones or emails. */
   "guests.viewContacts": ["owner", "manager", "organizer"],
   "rsvps.view": ALL,
+  /** The caterer's CSV, with every family's numbers. */
+  "rsvps.export": PLANNERS,
   "website.edit": PLANNERS,
   "gallery.moderate": PLANNERS,
 } as const satisfies Record<string, readonly Role[]>;

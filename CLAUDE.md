@@ -48,13 +48,14 @@ and API Design wins on endpoints, except for the decisions below.
 - Message templates: one set per wedding (invite, reminder, event day). Starter checklists are
   hard-coded with relative due offsets. The invite card is generated with `next/og`. `.ics` covers
   attending events only.
+- **No installable app (PWA) in this MVP**: users open the URL in a browser. An app is for the next MVP.
 - Production deploys run from GitHub Actions after migrations, not from Vercel's Git integration.
 
 ## Workflow
 
 - Build in the phases agreed in planning; finish one, then wait for the user's go-ahead before
-  starting the next. Phases 0–3 (scaffold, auth, weddings and members, events and tasks) are
-  done; Phase 4 is guests, households, RSVP and WhatsApp invites.
+  starting the next. Phases 0–4 (scaffold, auth, weddings and members, events and tasks,
+  guests and RSVP) are done. Next is Phase 7 (production launch), then Phases 5 and 6.
 - At the end of each phase, update `docs/Project Status.md`: what was built, what changed or was
   left out, the test count and the date.
 - Conventional Commits (`feat:`, `fix:`, `chore:`, `ci:` …), enforced by a commit-msg hook.

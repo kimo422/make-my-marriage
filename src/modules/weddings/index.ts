@@ -3,6 +3,7 @@ export {
   checkSlug,
   createWedding,
   deleteWedding,
+  getPublicWedding,
   getSummary,
   listMyWeddings,
   previewInvite,

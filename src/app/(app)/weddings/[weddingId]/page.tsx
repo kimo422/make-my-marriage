@@ -106,6 +106,46 @@ async function WeddingHome({ params }: { params: Promise<{ weddingId: string }> 
 
       <section className="border-hairline rounded-card border bg-white p-6">
         <div className="flex items-center justify-between gap-3">
+          <h2 className="font-serif text-xl">RSVPs</h2>
+          <Link href={`${base}/rsvps`} className="text-emerald text-sm font-medium">
+            {summary.rsvps.length ? "All answers →" : "Add guests →"}
+          </Link>
+        </div>
+        {summary.rsvps.length === 0 ? (
+          <p className="text-ink-muted mt-3">
+            No one is invited yet.{" "}
+            {can(membership.role, "guests.edit") ? (
+              <Link
+                href={`${base}/guests/import`}
+                className="text-emerald underline underline-offset-2"
+              >
+                Import your guest list
+              </Link>
+            ) : null}
+          </p>
+        ) : (
+          <ul className="divide-hairline mt-2 divide-y">
+            {events
+              .filter((e) => summary.rsvps.some((r) => r.eventId === e.id))
+              .map((e) => {
+                const r = summary.rsvps.find((x) => x.eventId === e.id);
+                if (!r) return null;
+                return (
+                  <li key={e.id} className="flex items-baseline justify-between gap-4 py-3">
+                    <span className="min-w-0 truncate font-medium">{e.name}</span>
+                    <span className="text-ink-muted shrink-0 text-sm">
+                      <span className="text-ink font-semibold">{r.attendingHeadcount}</span> coming
+                      · {r.pendingHouseholds} waiting
+                    </span>
+                  </li>
+                );
+              })}
+          </ul>
+        )}
+      </section>
+
+      <section className="border-hairline rounded-card border bg-white p-6">
+        <div className="flex items-center justify-between gap-3">
           <h2 className="font-serif text-xl">Tasks</h2>
           <Link href={`${base}/tasks`} className="text-emerald text-sm font-medium">
             Open the board →
@@ -226,10 +266,6 @@ async function WeddingHome({ params }: { params: Promise<{ weddingId: string }> 
           </ul>
         )}
       </section>
-
-      <p className="text-ink-muted text-center text-sm">
-        Guests and RSVPs arrive in the next phase.
-      </p>
     </div>
   );
 }

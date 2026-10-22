@@ -26,7 +26,7 @@ export interface EventDto {
 /** What deleting an event would affect; the UI shows it before confirming. */
 export interface EventImpactDto {
   tasksUnlinked: number;
-  /** RSVPs arrive in Phase 4 and photos in Phase 6; counted from then on. */
+  /** Photos arrive in Phase 6; counted from then on. */
   rsvpsRemoved: number;
   photosMoved: number;
 }

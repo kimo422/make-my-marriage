@@ -109,7 +109,7 @@ Password changes use Better Auth's own endpoint; they are not duplicated here.
 | `PATCH /api/weddings/:weddingId` | M | Edit names, date, city, tradition, RSVP deadline, slug |
 | `DELETE /api/weddings/:weddingId` | O | Soft delete (sets `deletedAt`); body must repeat the wedding's slug to confirm |
 | `POST /api/weddings/:weddingId/restore` | O | Undo a delete within the 30 days the wedding is hidden; an automatic purge cannot be undone |
-| `GET /api/weddings/:weddingId/summary` | V | Dashboard numbers: days to go, RSVP totals per event, open tasks, photo count and storage used (built so far: `daysToGo`, `events` count, `tasks` counts by status plus `overdue`; RSVP and photo totals join in Phases 4 and 6) |
+| `GET /api/weddings/:weddingId/summary` | V | Dashboard numbers: days to go, RSVP totals per event, open tasks, photo count and storage used (built so far: `daysToGo`, `events` count, `tasks` counts by status plus `overdue`, and `rsvps` per event as in `rsvps/summary`, limited to an organizer's side; photo totals join in Phase 6) |
 | `PATCH /api/weddings/:weddingId/website` | M | Website settings: `published`, `story`, `passwordProtected`, `indexable` |
 | `GET /api/weddings/:weddingId/activity` | V | Activity feed, newest first, cursor paged |
 
@@ -212,7 +212,7 @@ A household is the unit that is invited and answers. Organisers only ever see ho
 
 | Method and path | Min role | Purpose |
 | --- | --- | --- |
-| `GET /api/weddings/:weddingId/households` | V | Cursor-paged list; filters `side`, `group`, `messageState`, `eventId` (invited to), `rsvp=pending`, `q` (name search) |
+| `GET /api/weddings/:weddingId/households` | V | The whole list at once (no cursor: a wedding has hundreds of families), sorted by side then name; filters `side`, `group`, `messageState`, `eventId` (invited to), `rsvp=pending`, `q` (name search) |
 | `POST /api/weddings/:weddingId/households` | Org | Create a household with its guests in one call (`guests: [...]`) |
 | `GET /api/weddings/:weddingId/households/:householdId` | V | Household with guests, RSVPs and message state |
 | `PATCH /api/weddings/:weddingId/households/:householdId` | Org | Edit name, side, group, `maxHeadcount`, `invitedEventIds`, `primaryGuestId`, notes |
@@ -234,18 +234,20 @@ A household is the unit that is invited and answers. Organisers only ever see ho
 | Method and path | Min role | Purpose |
 | --- | --- | --- |
 | `GET /api/weddings/:weddingId/rsvps/summary` | V | Per event: invited, attending, declined, pending households and headcount (the two aggregation pipelines) |
-| `GET /api/weddings/:weddingId/events/:eventId/rsvps` | V | Every invited household for the event with its answer or `pending`; cursor paged |
+| `GET /api/weddings/:weddingId/events/:eventId/rsvps` | V | Every invited household for the event with its answer, or `answer: null` while pending |
 | `POST /api/weddings/:weddingId/households/:householdId/rsvps` | Org | Enter or change an answer on a household's behalf (`source: "organizer"`); upsert on household and event |
 | `DELETE /api/weddings/:weddingId/households/:householdId/rsvps/:eventId` | Org | Reset to pending |
-| `GET /api/weddings/:weddingId/rsvps/export.csv?eventId=` | M | Caterer export: one row per household with headcount |
+| `GET /api/weddings/:weddingId/rsvps/export.csv?eventId=` | M | Caterer export: one row per household with its headcount per event (blank = pending, "No" = declined) and a totals row; cells starting with `= + - @` are neutralised |
 
 **WhatsApp invites.** The app never sends a message. It prepares a `wa.me` link, the person taps it, and WhatsApp opens with the text ready.
 
 | Method and path | Min role | Purpose |
 | --- | --- | --- |
-| `GET /api/weddings/:weddingId/households/:householdId/invite` | Org | Returns `{ rsvpUrl, whatsappUrl, messageText }`; `whatsappUrl` uses the primary guest's phone, or `https://wa.me/?text=` when there is none |
+| `GET /api/weddings/:weddingId/households/:householdId/invite?kind=&eventId=` | Org | `kind` is `invite` (default), `reminder` or `event_day`. Returns `{ rsvpUrl, whatsappUrl, messageText, phone }`; `whatsappUrl` uses the primary guest's phone, or `https://wa.me/?text=` when there is none |
 | `POST /api/weddings/:weddingId/households/:householdId/message/mark-sent` | Org | After the person has sent it: `{ "kind": "invite" }` or `{ "kind": "reminder" }`; sets `message.state`, `sentAt`, `sentBy`, `reminderCount` |
 | `POST /api/weddings/:weddingId/households/:householdId/rsvp-link/regenerate` | Org | Makes the old RSVP link stop working and returns the new `rsvpUrl` |
+| `GET /api/weddings/:weddingId/message-templates` | Org | The wedding's `{ invite, reminder, eventDay }` wording, or the starter wording if never saved |
+| `PUT /api/weddings/:weddingId/message-templates` | Org | Save all three (up to 1,000 characters each). Placeholders: `{householdName}`, `{coupleNames}`, `{rsvpUrl}`, `{rsvpDeadline}`, `{eventName}`, `{eventDay}`, `{eventTime}`, `{venue}` |
 
 The invite queue is not a separate endpoint: it is `GET .../households?messageState=not_sent&side=bride`.
 
@@ -350,7 +352,9 @@ Guests have no accounts. Each public route is reached with a token in the path, 
 
 | Method and path | Purpose |
 | --- | --- |
-| `GET /api/public/rsvp/:token` | The household name, its guests' first names, the events it is invited to (with time and venue), current answers, `maxHeadcount`, deadline. Marks `message.state` as `opened` the first time |
+| `GET /api/public/rsvp/:token` | The household name, its guests' first names, the events it is invited to (with time and venue), current answers, `maxHeadcount`, deadline and `closed` |
+| `POST /api/public/rsvp/:token/opened` | Sent by the RSVP page once it has loaded; marks `message.state` as `opened` the first time. A beacon rather than the GET, so WhatsApp's link preview doesn't count as an open |
+| `GET /api/public/rsvp/:token/calendar.ics` | iCalendar file of the events the household said yes to |
 | `POST /api/public/rsvp/:token` | Submit answers for one or more events: `{ answers: [{ eventId, attending, headcount }] }`; upsert per event; sets `message.state` to `responded`. After `rsvpDeadline` it returns `409 RSVP_CLOSED` |
 
 The `POST` is one request and one transaction for all events, so a family never ends up with half its answers saved.
