@@ -3,6 +3,8 @@
 A web app where an Indian family plans the whole wedding in one place: events, tasks,
 organizers, guests with per-event RSVP, a wedding website and a shared photo gallery.
 
+**Live:** https://make-my-marriage-nine-nu.vercel.app
+
 Design docs live in [`docs/`](docs): PRD, System Design, Database Design and API Design.
 
 **Stack:** Next.js 16 (App Router, TypeScript strict) · MongoDB Atlas + Mongoose · Better Auth
@@ -114,15 +116,15 @@ checks `/api/health`, so the database is always ready before new code goes live.
 2. **Vercel: Production environment variables** (Project → Settings → Environment Variables,
    tick only **Production**). Use new secrets here, not the development ones.
 
-   | Variable             | Value                                                      |
-   | -------------------- | ---------------------------------------------------------- |
-   | `APP_URL`            | `https://make-my-marriage.vercel.app` (no trailing slash)  |
-   | `MONGODB_URI`        | the production connection string from step 1               |
-   | `MONGODB_DB`         | `mmm`                                                      |
-   | `BETTER_AUTH_SECRET` | a new random value (32+ characters)                        |
-   | `TOKEN_SECRET`       | a new random value (32+ characters); never change it later |
-   | `LOG_LEVEL`          | `info`                                                     |
-   | `RESEND_API_KEY`     | optional; without a domain it only emails your own address |
+   | Variable             | Value                                                             |
+   | -------------------- | ----------------------------------------------------------------- |
+   | `APP_URL`            | `https://make-my-marriage-nine-nu.vercel.app` (no trailing slash) |
+   | `MONGODB_URI`        | the production connection string from step 1                      |
+   | `MONGODB_DB`         | `mmm`                                                             |
+   | `BETTER_AUTH_SECRET` | a new random value (32+ characters)                               |
+   | `TOKEN_SECRET`       | a new random value (32+ characters); never change it later        |
+   | `LOG_LEVEL`          | `info`                                                            |
+   | `RESEND_API_KEY`     | optional; without a domain it only emails your own address        |
 
    Generate each secret with
    `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`.
@@ -138,9 +140,11 @@ checks `/api/health`, so the database is always ready before new code goes live.
    - Variable `MONGODB_DB` = `mmm` (environment or repository).
    - **Repository** variable `DEPLOY_ENABLED` = `true`. It must be at repository level: the
      workflow decides whether to run before it loads the environment.
+   - **Repository** variable `PRODUCTION_URL` = the site's address (the same as `APP_URL`),
+     for the health check after each deploy.
 5. **Deploy.** Actions → **Deploy production** → Run workflow (or merge anything to `main`).
    The run migrates `mmm`, deploys, and passes only when
-   `https://make-my-marriage.vercel.app/api/health` reports `ok`.
+   `https://make-my-marriage-nine-nu.vercel.app/api/health` reports `ok`.
 
 ### If a deploy goes wrong
 

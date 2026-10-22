@@ -34,7 +34,7 @@ jobs:
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      PRODUCTION_URL: ${{ vars.PRODUCTION_URL || 'https://make-my-marriage.vercel.app' }}
+      PRODUCTION_URL: ${{ vars.PRODUCTION_URL || 'https://make-my-marriage-nine-nu.vercel.app' }}
       NEXT_TELEMETRY_DISABLED: 1
     steps:
       # Fail in seconds, with the name of what's missing, instead of halfway
