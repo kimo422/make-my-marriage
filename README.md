@@ -84,6 +84,7 @@ Phase 5, the image Worker on `*.workers.dev`.
 | Now     | MongoDB Atlas | Free M0 cluster in Mumbai (ap-south-1); a database user limited to `mmm`; network access 0.0.0.0/0 | `MONGODB_URI`, `MONGODB_DB`    |
 | Now     | Vercel        | Import this GitHub repo as a project; Node 24; region `bom1` comes from `vercel.json`              | `APP_URL` and the vars above   |
 | Now     | (none)        | A random `BETTER_AUTH_SECRET` of 32+ characters per environment (see `.env.example`)               | `BETTER_AUTH_SECRET`           |
+| Phase 4 | (none)        | A random `TOKEN_SECRET` of 32+ characters per environment; never change it once links are sent     | `TOKEN_SECRET`                 |
 | Phase 1 | Resend        | Account and API key. Without a verified domain it only delivers to your own address                | `RESEND_API_KEY`, `EMAIL_FROM` |
 | Phase 5 | Cloudflare    | R2 buckets (dev and prod), an R2 API token, a Worker on `workers.dev`                              | `R2_*`, `IMAGE_BASE_URL`, …    |
 
@@ -93,13 +94,55 @@ Phase 5, the image Worker on `*.workers.dev`.
    require the **Lint, types, tests, build** check to pass, and allow squash merging only
    (Settings → General → Pull Requests).
 2. **Deploying** (Settings → Secrets and variables → Actions):
-   - Secrets: `VERCEL_TOKEN` (Vercel → Account → Tokens), `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`
-     (in `.vercel/project.json` after running `npx vercel link` once), `MONGODB_URI` (production).
-   - Variable: `DEPLOY_ENABLED` = `true`. Until it is set, the deploy workflow skips itself.
+   See "Deploying" below. Until the variable `DEPLOY_ENABLED` is `true`, the deploy workflow
+   skips itself.
 
 ## Deploying
 
 Pull requests get a Vercel preview automatically. Vercel's own deploys from `main` are turned off
 in `vercel.json`. Instead, when CI passes on `main`, the
-[deploy workflow](.github/workflows/deploy.yml) runs migrations and then deploys to production,
-so the database schema is always ready before new code goes live.
+[deploy workflow](.github/workflows/deploy.yml) runs migrations, deploys to production, then
+checks `/api/health`, so the database is always ready before new code goes live.
+
+### First production launch (one-time)
+
+1. **Atlas: production database.** On the same free cluster, add a database user (Database
+   Access) with **readWrite on `mmm` only** and a long generated password. Production uses the
+   database `mmm`; development keeps `mmm_dev`. Network Access must allow `0.0.0.0/0`, because
+   Vercel functions and GitHub runners have no fixed IP addresses. Copy the `mongodb+srv://`
+   connection string for this user.
+2. **Vercel: Production environment variables** (Project → Settings → Environment Variables,
+   tick only **Production**). Use new secrets here, not the development ones.
+
+   | Variable             | Value                                                      |
+   | -------------------- | ---------------------------------------------------------- |
+   | `APP_URL`            | `https://make-my-marriage.vercel.app` (no trailing slash)  |
+   | `MONGODB_URI`        | the production connection string from step 1               |
+   | `MONGODB_DB`         | `mmm`                                                      |
+   | `BETTER_AUTH_SECRET` | a new random value (32+ characters)                        |
+   | `TOKEN_SECRET`       | a new random value (32+ characters); never change it later |
+   | `LOG_LEVEL`          | `info`                                                     |
+   | `RESEND_API_KEY`     | optional; without a domain it only emails your own address |
+
+   Generate each secret with
+   `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`.
+
+3. **Vercel: token and ids.** Create a token (Account Settings → Tokens, scope: your team or
+   account). The team id is under Team Settings → General ("Team ID"; for a personal account,
+   Account Settings → General, "Vercel ID"); the project id is under Project → Settings → General
+   ("Project ID").
+4. **GitHub: secrets and switch** (repo → Settings → Secrets and variables → Actions):
+   - Secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID` (team or account id), `VERCEL_PROJECT_ID`,
+     `MONGODB_URI` (the production string from step 1; the workflow runs migrations with it).
+   - Variables: `DEPLOY_ENABLED` = `true`, `MONGODB_DB` = `mmm`.
+5. **Deploy.** Actions → **Deploy production** → Run workflow (or merge anything to `main`).
+   The run migrates `mmm`, deploys, and passes only when
+   `https://make-my-marriage.vercel.app/api/health` reports `ok`.
+
+### If a deploy goes wrong
+
+- The "Check deploy settings" step names any missing secret.
+- A build error naming `APP_URL` means the Production `APP_URL` isn't the https site address.
+- If the health check fails, open the deployment's logs in Vercel. To roll back, promote the
+  previous production deployment in Vercel (Deployments → ⋯ → Promote). Migrations only add
+  indexes, so the older code still works with them.

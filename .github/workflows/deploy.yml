@@ -4,9 +4,9 @@ name: Deploy production
 # have run. vercel.json turns off Vercel's own deploys for main; pull requests
 # still get Vercel preview deployments.
 #
-# Turn on by setting the repository variable DEPLOY_ENABLED=true and the
-# secrets VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID and MONGODB_URI
-# (see README, "Deploying").
+# Turn on by adding the secrets VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+# and MONGODB_URI, then the repository variable DEPLOY_ENABLED=true (see
+# README, "Deploying").
 
 on:
   workflow_run:
@@ -32,8 +32,26 @@ jobs:
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      PRODUCTION_URL: ${{ vars.PRODUCTION_URL || 'https://make-my-marriage.vercel.app' }}
       NEXT_TELEMETRY_DISABLED: 1
     steps:
+      # Fail in seconds, with the name of what's missing, instead of halfway
+      # through a migration or a Vercel command.
+      - name: Check deploy settings
+        run: |
+          missing=""
+          [ -n "$VERCEL_TOKEN" ] || missing="$missing VERCEL_TOKEN"
+          [ -n "$VERCEL_ORG_ID" ] || missing="$missing VERCEL_ORG_ID"
+          [ -n "$VERCEL_PROJECT_ID" ] || missing="$missing VERCEL_PROJECT_ID"
+          [ -n "$MONGODB_URI" ] || missing="$missing MONGODB_URI"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing (README, Deploying)"
+            exit 1
+          fi
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
@@ -58,3 +76,20 @@ jobs:
           npx vercel@64.7.0 deploy --prebuilt --prod --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      # The site must answer and reach the database. A failure here means the
+      # new version is live but unhealthy: check the Vercel logs, then promote
+      # the previous deployment in Vercel if needed.
+      - name: Check the live site
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            body=$(curl -fsS --max-time 20 "$PRODUCTION_URL/api/health" || true)
+            if echo "$body" | grep -q '"status":"ok"'; then
+              echo "Healthy: $PRODUCTION_URL"
+              exit 0
+            fi
+            echo "Attempt $attempt: not healthy yet ($body)"
+            sleep 10
+          done
+          echo "::error::$PRODUCTION_URL/api/health did not report ok"
+          exit 1

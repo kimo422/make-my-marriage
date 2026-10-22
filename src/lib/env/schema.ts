@@ -27,12 +27,32 @@ export const serverEnvSchema = z.object({
     z.string().startsWith("re_").optional(),
   ),
   EMAIL_FROM: z.string().min(3).default("Make My Marriage <onboarding@resend.dev>"),
+
+  // Set by Vercel: "production", "preview" or "development".
+  VERCEL_ENV: z.enum(["production", "preview", "development"]).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
+/**
+ * Production must point at its real https address: APP_URL builds every RSVP
+ * link and is the only origin allowed to sign in, so a localhost value would
+ * ship broken links and a site nobody can log into.
+ */
+const productionEnvSchema = serverEnvSchema.superRefine((env, ctx) => {
+  if (env.VERCEL_ENV !== "production") return;
+  const url = new URL(env.APP_URL);
+  if (url.protocol !== "https:" || ["localhost", "127.0.0.1"].includes(url.hostname)) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["APP_URL"],
+      message: "must be the site's public https address in production",
+    });
+  }
+});
+
 export function parseServerEnv(source: Record<string, string | undefined>): ServerEnv {
-  const result = serverEnvSchema.safeParse(source);
+  const result = productionEnvSchema.safeParse(source);
   if (!result.success) {
     throw new Error(`Invalid environment variables:\n${z.prettifyError(result.error)}`);
   }
