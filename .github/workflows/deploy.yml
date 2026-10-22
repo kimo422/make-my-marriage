@@ -71,11 +71,11 @@ jobs:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           MONGODB_DB: ${{ vars.MONGODB_DB || 'mmm' }}
 
-      - name: Build and deploy to Vercel
-        run: |
-          npx vercel@64.7.0 pull --yes --environment=production --token="$VERCEL_TOKEN"
-          npx vercel@64.7.0 build --prod --token="$VERCEL_TOKEN"
-          npx vercel@64.7.0 deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+      # Vercel builds this commit on its own servers. A local `vercel build`
+      # can't be used: `vercel pull` returns Sensitive variables (the database
+      # string and secrets) as empty values, which fails the env check.
+      - name: Build and deploy on Vercel
+        run: npx vercel@64.7.0 deploy --prod --yes --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
