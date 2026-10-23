@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Newsreader } from "next/font/google";
 import "./globals.css";
 
+import { env } from "@/lib/env/server";
+
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const newsreader = Newsreader({
   subsets: ["latin"],
@@ -10,6 +12,8 @@ const newsreader = Newsreader({
 });
 
 export const metadata: Metadata = {
+  // Absolute links in page metadata (link-preview images) use the public address.
+  metadataBase: new URL(env.APP_URL),
   title: { default: "Make My Marriage", template: "%s · Make My Marriage" },
   description: "Plan the whole wedding in one place: events, tasks, guests, RSVPs and photos.",
   robots: { index: false, follow: false },

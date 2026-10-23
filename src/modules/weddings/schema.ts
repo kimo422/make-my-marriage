@@ -55,5 +55,29 @@ export const deleteWeddingSchema = z.object({ slug: z.string().trim().toLowerCas
 
 export const slugQuerySchema = z.object({ slug: z.string().max(80) });
 
+/**
+ * Website settings (FR-8.1–8.4). `password` sets a new one; null removes it.
+ * A blank story clears it.
+ */
+export const websiteSettingsSchema = z
+  .object({
+    published: z.boolean().optional(),
+    story: z.string().trim().max(2000, "Keep the story under 2,000 characters").optional(),
+    password: z
+      .string()
+      .min(6, "Use at least 6 characters")
+      .max(100, "Use 100 characters or fewer")
+      .nullable()
+      .optional(),
+    indexable: z.boolean().optional(),
+  })
+  .strict()
+  .refine((v) => Object.keys(v).length > 0, { message: "Nothing to change" });
+
+export const siteUnlockSchema = z
+  .object({ password: z.string().min(1, "Enter the password").max(100) })
+  .strict();
+
 export type CreateWeddingInput = z.infer<typeof createWeddingSchema>;
 export type UpdateWeddingInput = z.infer<typeof updateWeddingSchema>;
+export type WebsiteSettingsInput = z.infer<typeof websiteSettingsSchema>;

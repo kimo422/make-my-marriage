@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHash, createHmac, randomBytes } from "node:crypto";
+import { createHash, createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
 import { env } from "@/lib/env/server";
 
@@ -23,4 +23,33 @@ export function deriveLinkToken(kind: "rsvp" | "gallery", id: string, version: n
   return createHmac("sha256", env.TOKEN_SECRET)
     .update(`${kind}:${id}:${String(version)}`)
     .digest("base64url");
+}
+
+/**
+ * A salted scrypt hash for short shared secrets typed by guests (the website
+ * password, later the gallery PIN): "scrypt:<salt>:<hash>", both base64url.
+ */
+export function hashSecret(secret: string): string {
+  const salt = randomBytes(16);
+  return `scrypt:${salt.toString("base64url")}:${scryptSync(secret, salt, 32).toString("base64url")}`;
+}
+
+export function verifySecret(secret: string, stored: string): boolean {
+  const [scheme, salt, hash] = stored.split(":");
+  if (scheme !== "scrypt" || !salt || !hash) return false;
+  const expected = Buffer.from(hash, "base64url");
+  const actual = scryptSync(secret, Buffer.from(salt, "base64url"), expected.length);
+  return timingSafeEqual(actual, expected);
+}
+
+/** HMAC-SHA256 under TOKEN_SECRET, for short-lived signed cookies. */
+export function signValue(value: string): string {
+  return createHmac("sha256", env.TOKEN_SECRET).update(value).digest("base64url");
+}
+
+/** Constant-time comparison of two signatures. */
+export function sameSignature(a: string, b: string): boolean {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  return left.length === right.length && timingSafeEqual(left, right);
 }

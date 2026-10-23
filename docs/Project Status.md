@@ -1,7 +1,7 @@
 
 # Make My Marriage — Project Status
 
-Last updated: 22 Oct 2026
+Last updated: 23 Oct 2026
 
 This is the running record of what has been built, phase by phase, and what is still to come. The PRD says *what* the product does; this doc says *where we are*. Update it at the end of every phase.
 
@@ -14,14 +14,16 @@ This is the running record of what has been built, phase by phase, and what is s
 | 1 | Accounts: sign-up, sign-in, password reset | Done | `main` (PR #8) |
 | 2 | Weddings, members, invite links, activity log | Done | `main` (PR #9) |
 | 3 | Events, tasks, starter checklists, dashboard home | Done | `main` (PR #10) |
-| 4 | Guests, households, RSVP, WhatsApp invites | Done | `feat/guests-rsvp` |
-| 5 | Photo storage, wedding website, invite card | Not started | |
+| 4 | Guests, households, RSVP, WhatsApp invites | Done | `main` |
+| 5 | Wedding website and invite card (photo storage deferred) | Done (5a) | `feat/wedding-website` |
 | 6 | Photo gallery with QR uploads and moderation | Not started | |
-| 7 | Production launch and polish: demo data, end-to-end tests | Next (moved ahead of 5 and 6) | |
+| 7 | Production launch and polish: demo data, end-to-end tests | Launched; polish not started | `main` |
 
-**Test count:** 198 automated tests passing (unit, API and full role matrix).
+**Test count:** 207 automated tests passing (unit, API and full role matrix).
 
-**Order change (22 Oct 2026):** after Phase 4 we go to Phase 7, to get the app live on Vercel in production, then come back for Phases 5 and 6.
+**Order change (22 Oct 2026):** after Phase 4 we went to Phase 7 to get the app live on Vercel, then came back for Phase 5.
+
+**Live:** https://make-my-marriage-nine-nu.vercel.app (since 22 Oct 2026).
 
 ---
 
@@ -164,14 +166,29 @@ PRD: FR-6.1–6.6, FR-7.1–7.4.
 - 39 new tests: role matrix, side scoping, contacts hidden from viewers, capacity, not-invited and deadline rules, link regeneration, the import preview/commit/undo, templates, CSV export and the event cascade.
 - Changed from the API Design: the household list returns the whole list at once instead of cursor pages (a wedding has hundreds of families, not millions). Added `PUT /message-templates`, an `opened` beacon and `calendar.ics`.
 
-## Phase 5 — Photo storage, wedding website and invite card (planned)
+## Phase 5 — Wedding website and invite card (done; photo storage deferred)
 
-PRD: FR-2.1 (cover photo), FR-7.5, FR-8.1–8.4.
+PRD: FR-7.5, FR-8.1–8.4. Not built: FR-2.1's cover photo and the R2 photo storage, which wait for a Cloudflare account with R2 (it needs a card on file).
 
-- Cloudflare R2 photo storage and a small Cloudflare Worker that serves photos through signed links.
-- Cover photo for the wedding.
-- Public wedding website at `/site/<address>`: couple, story, public events with venues, RSVP entry and gallery link; publish or unpublish, optional password, hidden from search engines unless you choose otherwise.
-- A shareable invite card image generated for each wedding.
+**Wedding website (`/site/<address>`)**
+- Built from the wedding: couple, date, city and tradition, a countdown, "Our story", the **public** events with times, venues, map links and dress codes, and an RSVP note pointing guests to their personal WhatsApp link. Private events are left out.
+- Publish or take it offline; until published the address is "not found". The page uses the app's emerald and ivory look (decided 23 Oct 2026 instead of the PRD's traditional theme).
+- Optional password: visitors enter it once and their browser remembers it for 12 hours. Changing or removing the password asks everyone again. Ten tries per 15 minutes per visitor.
+- Hidden from search engines by default; the couple can allow indexing, which never applies while a password is set.
+- Changing the website address in Settings changes the link; RSVP links are unaffected.
+
+**Invite card**
+- An image made from the couple's names, the date and the city, in the same style: portrait for sending on WhatsApp next to each family's message (Settings → Invite card: preview, Download, and Share on phones), and landscape as the preview WhatsApp shows when the website link is shared.
+- The invites page links to it.
+
+**Settings**
+- New "Wedding website" section for owners and managers: publish switch, story (2,000 characters), search-engine switch, password set / change / remove, and the website link with Copy and Open.
+- Publishing, unpublishing and edits are recorded in the activity log.
+
+**Also**
+- 9 new tests: the role matrix, the hash never being returned, published / unpublished / deleted, private events hidden, the password and cookie (including a forged cookie and a changed password), and the PNG card.
+- Fonts: the card uses Newsreader TTF files bundled in `src/assets/fonts` (Open Font License).
+- Not done: cover photo and photo storage (see above); the gallery link on the website comes with Phase 6.
 
 ## Phase 6 — Photo gallery (planned)
 
@@ -211,6 +228,7 @@ Agreed during planning (20 Oct 2026); `CLAUDE.md` holds the full list.
 - **Email:** with no domain, Resend only delivers to the account owner's own address, so password-reset emails won't reach other users yet.
 - **Production:** not deployed yet. Needs a production Atlas cluster, production environment variables on Vercel, and `DEPLOY_ENABLED=true` on GitHub.
 - **Guests:** no bulk actions yet (invite several families to an event at once); edit families one by one or re-import.
+- **Photos:** no photo storage yet; it needs a Cloudflare account with R2 enabled, which asks for a payment card even on the free tier. The cover photo and the gallery wait for it.
 - **Waiting on later phases:** the default "General" album at wedding creation (Phase 6) and the cover photo (Phase 5).
 - **Not in the MVP:** expenses, vendors, travel and hotels, live stream, face search, other languages.
 

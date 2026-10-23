@@ -22,10 +22,11 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-  // Nothing is indexed by default; the wedding website overrides this when an
-  // owner turns indexing on (FR-8.4).
-  { key: "X-Robots-Tag", value: "noindex, nofollow" },
 ];
+
+// Nothing is indexed by default (FR-8.4). Wedding websites under /site are
+// left out: each page sets its own robots tag from the couple's choice.
+const noIndex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
@@ -42,6 +43,7 @@ const nextConfig: NextConfig = {
   headers() {
     return Promise.resolve([
       { source: "/:path*", headers: securityHeaders },
+      { source: "/:path((?!site/).*)", headers: noIndex },
       // A guest's RSVP link carries their token: never send it on as a Referer
       // (to maps, calendars or WhatsApp). Later entries win for the same header.
       { source: "/r/:path*", headers: [{ key: "Referrer-Policy", value: "no-referrer" }] },

@@ -110,7 +110,9 @@ Password changes use Better Auth's own endpoint; they are not duplicated here.
 | `DELETE /api/weddings/:weddingId` | O | Soft delete (sets `deletedAt`); body must repeat the wedding's slug to confirm |
 | `POST /api/weddings/:weddingId/restore` | O | Undo a delete within the 30 days the wedding is hidden; an automatic purge cannot be undone |
 | `GET /api/weddings/:weddingId/summary` | V | Dashboard numbers: days to go, RSVP totals per event, open tasks, photo count and storage used (built so far: `daysToGo`, `events` count, `tasks` counts by status plus `overdue`, and `rsvps` per event as in `rsvps/summary`, limited to an organizer's side; photo totals join in Phase 6) |
-| `PATCH /api/weddings/:weddingId/website` | M | Website settings: `published`, `story`, `passwordProtected`, `indexable` |
+| `GET /api/weddings/:weddingId/website` | V | Website settings: `published`, `story`, `passwordProtected`, `indexable`, `publishedAt` and the public `url`; never the password |
+| `PATCH /api/weddings/:weddingId/website` | M | Change `published`, `story`, `indexable`; `password` sets a new one (6–100 characters) and `null` removes it |
+| `GET /api/weddings/:weddingId/invite-card?format=` | V | The invite card PNG: `portrait` (1080×1350, default) for WhatsApp or `landscape` (1200×630). The website's link preview uses the landscape card |
 | `GET /api/weddings/:weddingId/activity` | V | Activity feed, newest first, cursor paged |
 
 **Members and invites**
@@ -345,8 +347,8 @@ Guests have no accounts. Each public route is reached with a token in the path, 
 
 | Method and path | Purpose |
 | --- | --- |
-| `GET /api/public/site/:slug` | Published site content: names, date, city, story, public events with venues. `404` if unpublished |
-| `POST /api/public/site/:slug/unlock` | Check the website password; sets a signed 12-hour cookie. Only needed when a password is set |
+| `GET /api/public/site/:slug` | Published site content: names, date, city, story, public events with venues. `404` if unpublished or deleted. While a password is set and not yet given, returns only `{ locked: true, brideName, groomName }` |
+| `POST /api/public/site/:slug/unlock` | Check the website password; sets a signed 12-hour cookie (`204`). A wrong password is `422` with `fields.password`; 10 tries per 15 minutes per IP. Changing the password invalidates earlier cookies |
 
 **RSVP link** (token identifies one household)
 

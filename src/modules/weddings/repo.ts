@@ -116,3 +116,83 @@ export async function setDeletedAt(weddingId: string, at: Date | null): Promise<
     at ? { $set: { deletedAt: at } } : { $unset: { deletedAt: "" } },
   ).exec();
 }
+
+// Wedding website
+
+export interface WebsiteRecord {
+  published: boolean;
+  story: string;
+  passwordHash: string | null;
+  indexable: boolean;
+  publishedAt: string | null;
+}
+
+interface WebsiteDoc {
+  website?: {
+    published?: boolean;
+    story?: string;
+    passwordHash?: string | null;
+    indexable?: boolean;
+    publishedAt?: Date | null;
+  } | null;
+}
+
+function toWebsite(doc: WebsiteDoc): WebsiteRecord {
+  const w = doc.website ?? {};
+  return {
+    published: w.published ?? false,
+    story: w.story ?? "",
+    passwordHash: w.passwordHash ?? null,
+    indexable: w.indexable ?? false,
+    publishedAt: w.publishedAt ? w.publishedAt.toISOString() : null,
+  };
+}
+
+export async function findWebsite(weddingId: string): Promise<WebsiteRecord | null> {
+  const doc = await Wedding.findOne({ _id: oid(weddingId), deletedAt: null })
+    .select({ website: 1 })
+    .lean<WebsiteDoc>()
+    .exec();
+  return doc ? toWebsite(doc) : null;
+}
+
+/** The public site's lookup by its address; deleted weddings never match. */
+export async function findWeddingBySlug(
+  slug: string,
+): Promise<{ wedding: WeddingDto; website: WebsiteRecord } | null> {
+  const doc = await Wedding.findOne({ slug: slug.toLowerCase(), deletedAt: null })
+    .lean<WeddingDoc & WebsiteDoc>()
+    .exec();
+  return doc ? { wedding: toDto(doc), website: toWebsite(doc) } : null;
+}
+
+export async function updateWebsite(
+  weddingId: string,
+  changes: {
+    published?: boolean | undefined;
+    story?: string | undefined;
+    passwordHash?: string | null | undefined;
+    indexable?: boolean | undefined;
+    publishedAt?: Date | undefined;
+  },
+): Promise<WebsiteRecord | null> {
+  const set: Record<string, unknown> = {};
+  const unset: Record<string, ""> = {};
+  for (const [key, value] of Object.entries(changes) as [string, unknown][]) {
+    if (value === undefined) continue;
+    if (value === null) unset[`website.${key}`] = "";
+    else set[`website.${key}`] = value;
+  }
+  const doc = await Wedding.findOneAndUpdate(
+    { _id: oid(weddingId), deletedAt: null },
+    {
+      ...(Object.keys(set).length ? { $set: set } : {}),
+      ...(Object.keys(unset).length ? { $unset: unset } : {}),
+    },
+    { returnDocument: "after", runValidators: true },
+  )
+    .select({ website: 1 })
+    .lean<WebsiteDoc>()
+    .exec();
+  return doc ? toWebsite(doc) : null;
+}

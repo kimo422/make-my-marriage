@@ -37,6 +37,13 @@ async function Invites({ params }: { params: Promise<{ weddingId: string }> }) {
           <Link href={`${base}/templates`} className="text-emerald underline underline-offset-2">
             Change the wording
           </Link>
+          {" · "}
+          <Link
+            href={`/weddings/${ctx.wedding.id}/settings`}
+            className="text-emerald underline underline-offset-2"
+          >
+            Get the invite card
+          </Link>
         </p>
       </div>
       <InviteQueue weddingId={ctx.wedding.id} households={households} />
