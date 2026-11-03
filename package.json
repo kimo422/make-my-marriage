@@ -25,14 +25,14 @@
     "lockfile:check": "node scripts/check-lockfile.mjs"
   },
   "dependencies": {
-    "better-auth": "^1.7.12",
-    "mongodb": "~7.7.0",
-    "mongoose": "^9.11.2",
-    "next": "16.4.2",
+    "better-auth": "^1.7.14",
+    "mongodb": "~7.8.0",
+    "mongoose": "^9.11.4",
+    "next": "16.4.3",
     "pino": "^10.4.0",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
-    "resend": "^6.34.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "resend": "^6.37.0",
     "server-only": "^0.0.1",
     "zod": "^4.6.7"
   },
@@ -44,7 +44,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.4.2",
+    "eslint-config-next": "16.4.3",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
@@ -54,7 +54,7 @@
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "typescript-eslint": "^8.72.0",
+    "typescript-eslint": "^8.72.1",
     "vitest": "^5.0.5"
   },
   "lint-staged": {
